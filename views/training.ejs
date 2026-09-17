@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title>Training</title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <% function formatDateTime(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var hours = date.getHours();
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear() + ', ' + (hours % 12 || 12) + ':' + minutes + ' ' + (hours >= 12 ? 'pm' : 'am');
+        } %>
+
+        <header class="page-header">
+            <h1>Training</h1>
+            <p>View and complete the training modules assigned to your role.</p>
+        </header>
+
+        <% var completedModules = trainingModules.filter(function (module) { return module.completedAt; }).length; %>
+        <% var totalModules = trainingModules.length; %>
+        <% var completionPercentage = totalModules === 0 ? 0 : Math.round((completedModules / totalModules) * 100); %>
+
+        <% if (totalModules === 0) { %>
+            <p class="empty-state">No training modules are available.</p>
+        <% } else { %>
+            <section class="content-card progress-summary" aria-label="Training progress">
+                <h2>Training progress</h2>
+                <p><strong><%= completedModules %> of <%= totalModules %> modules completed</strong></p>
+                <p class="summary-label"><%= completionPercentage %>% complete</p>
+                <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= completionPercentage %>">
+                    <div class="progress-bar" style="width: <%= completionPercentage %>%"></div>
+                </div>
+            </section>
+
+            <% trainingModules.forEach(function (trainingModule) { %>
+                <section class="content-card training-card">
+                    <h2><%= trainingModule.title %></h2>
+                    <p><%= trainingModule.description %></p>
+
+                    <% if (trainingModule.completedAt) { %>
+                        <p><span class="status-badge status-completed">Completed</span></p>
+                        <p class="status-note">Completed: <%= formatDateTime(trainingModule.completedAt) %></p>
+                    <% } else { %>
+                        <p><span class="status-badge status-not-completed">Not completed</span></p>
+
+                        <form
+                            method="POST"
+                            action="/training/<%= trainingModule.moduleId %>/complete"
+                        >
+                            <button class="button-primary" type="submit">Mark as completed</button>
+                        </form>
+                    <% } %>
+                </section>
+            <% }); %>
+        <% } %>
+    </main>
+</body>
+</html>

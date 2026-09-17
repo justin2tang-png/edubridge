@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin overview</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body class="admin-page">
+    <%- include('partials/nav') %>
+
+    <main class="admin-shell">
+    <header class="page-header">
+        <h1>Admin overview</h1>
+        <p>EduBridge record summary</p>
+    </header>
+
+    <ul class="content-card admin-summary">
+        <li>Accounts: <%= userCount %></li>
+        <li>Programmes: <%= programmeCount %></li>
+        <li>Applications: <%= applicationCount %></li>
+        <li>Training modules: <%= trainingModuleCount %></li>
+    </ul>
+
+<details class="admin-section">
+<summary>Accounts</summary>
+
+<table class="data-table">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Assigned agent</th>
+    </tr>
+
+    <% users.forEach(function(user) { %>
+        <tr>
+            <td><%= user.id %></td>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
+            <td>
+                <form method="POST" action="/admin/users/<%= user.id %>/role">
+                    <select name="role" required>
+                        <option value="student" <%= user.role === 'student' ? 'selected' : '' %>>
+                            Student
+                        </option>
+                        <option value="agent" <%= user.role === 'agent' ? 'selected' : '' %>>
+                            Agent
+                        </option>
+                        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>
+                            Admin
+                        </option>
+                    </select>
+
+                    <button type="submit">Save</button>
+                </form>
+            </td>
+            <td>
+                <% if (user.role === 'student') { %>
+                    <form method="POST" action="/admin/users/<%= user.id %>/agent">
+                        <select name="agentId" required>
+                            <option value="">Select agent</option>
+                            <% users.forEach(function(agent) { %>
+                                <% if (agent.role === 'agent') { %>
+                                    <option value="<%= agent.id %>" <%= user.agentId === agent.id ? 'selected' : '' %>>
+                                        <%= agent.name %>
+                                    </option>
+                                <% } %>
+                            <% }); %>
+                        </select>
+                        <button type="submit">Save</button>
+                    </form>
+                <% } else { %>
+                    <%= user.agentName || 'Not applicable' %>
+                <% } %>
+            </td>
+        </tr>
+    <% }); %>
+</table>
+</details>
+
+<details class="admin-section">
+<summary>Training modules</summary>
+
+<table class="data-table">
+    <tr>
+        <th>Module ID</th>
+        <th>Title</th>
+        <th>Description</th>
+    </tr>
+
+    <% trainingModules.forEach(function(module) { %>
+        <tr>
+            <td><%= module.moduleId %></td>
+            <td><%= module.title %></td>
+            <td><%= module.description %></td>
+        </tr>
+    <% }); %>
+</table>
+
+<details class="admin-action"><summary>Edit training module</summary>
+
+<form method="POST" action="/admin/training/edit">
+    <label for="editModuleId">Module ID</label>
+    <input id="editModuleId" name="moduleId" type="number" min="1" required>
+
+    <label for="editModuleTitle">Title</label>
+    <input id="editModuleTitle" name="title" type="text" required>
+
+    <label for="editModuleDescription">Description</label>
+    <textarea id="editModuleDescription" name="description" required></textarea>
+
+    <button type="submit">Save changes</button>
+</form></details>
+
+<details class="admin-action"><summary>Add training module</summary>
+
+<form method="POST" action="/admin/training">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" required></textarea>
+
+    <button type="submit">Add module</button>
+</form></details>
+
+<details class="admin-action"><summary>Remove training module</summary>
+
+<form method="POST" action="/admin/training/delete">
+    <label for="moduleId">Module ID</label>
+    <input id="moduleId" name="moduleId" type="number" min="1" required>
+
+    <button class="button-danger" type="submit">Remove module</button>
+</form></details>
+</details>
+
+<details class="admin-section">
+<summary>Knowledge articles</summary>
+
+<table class="data-table">
+    <tr>
+        <th>Article ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Source</th>
+    </tr>
+
+    <% knowledgeArticles.forEach(function(article) { %>
+        <tr>
+            <td><%= article.articleId %></td>
+            <td><%= article.title %></td>
+            <td><%= article.category %></td>
+            <td><%= article.sourceLabel %></td>
+        </tr>
+    <% }); %>
+</table>
+
+<details class="admin-action"><summary>Add knowledge article</summary>
+
+<form method="POST" action="/admin/knowledge">
+    <label for="articleTitle">Title</label>
+    <input id="articleTitle" name="title" type="text" required>
+
+    <label for="category">Category</label>
+    <input id="category" name="category" type="text" required>
+
+    <label for="content">Content</label>
+    <textarea id="content" name="content" required></textarea>
+
+    <label for="sourceLabel">Source</label>
+    <input id="sourceLabel" name="sourceLabel" type="text" required>
+
+    <button type="submit">Add article</button>
+</form></details>
+
+<details class="admin-action"><summary>Remove knowledge article</summary>
+
+<form method="POST" action="/admin/knowledge/delete">
+    <label for="articleId">Article ID</label>
+    <input id="articleId" name="articleId" type="number" min="1" required>
+
+    <button class="button-danger" type="submit">Remove article</button>
+</form></details>
+
+<details class="admin-action"><summary>Edit knowledge article</summary>
+
+<form method="POST" action="/admin/knowledge/edit">
+    <label for="editArticleId">Article ID</label>
+    <input id="editArticleId" name="articleId" type="number" min="1" required>
+
+    <label for="editArticleTitle">Title</label>
+    <input id="editArticleTitle" name="title" type="text" required>
+
+    <label for="editArticleCategory">Category</label>
+    <input id="editArticleCategory" name="category" type="text" required>
+
+    <label for="editArticleContent">Content</label>
+    <textarea id="editArticleContent" name="content" required></textarea>
+
+    <label for="editArticleSource">Source</label>
+    <input id="editArticleSource" name="sourceLabel" type="text" required>
+
+    <button type="submit">Save changes</button>
+</form></details>
+</details>
+
+<details class="admin-section">
+<summary>Programmes</summary>
+
+<details class="admin-action"><summary>Edit programme</summary>
+<form method="POST" action="/admin/programmes/edit">
+    <label for="programmeId">Programme ID</label>
+    <input id="programmeId" name="programmeId" type="number" min="1" required>
+
+    <label for="programmeName">Programme name</label>
+    <input id="programmeName" name="programmeName" type="text" required>
+
+    <label for="provider">Provider</label>
+    <input id="provider" name="provider" type="text" required>
+
+    <label for="programmeLevel">Level</label>
+    <input id="programmeLevel" name="level" type="text" required>
+
+    <label for="programmeLocation">Location</label>
+    <input id="programmeLocation" name="location" type="text" required>
+
+    <label for="duration">Duration</label>
+    <input id="duration" name="duration" type="text" required>
+
+    <label for="programmeStudyArea">Study area</label>
+    <input id="programmeStudyArea" name="studyArea" type="text" required>
+
+    <button type="submit">Save programme</button>
+</form></details>
+
+<details class="admin-action"><summary>Remove programme</summary>
+
+<form method="POST" action="/admin/programmes/delete">
+    <label for="deleteProgrammeId">Programme ID</label>
+    <input id="deleteProgrammeId" name="programmeId" type="number" min="1" required>
+
+    <button class="button-danger" type="submit">Remove programme</button>
+</form></details>
+
+<details class="admin-action"><summary>Add programme</summary>
+
+<form method="POST" action="/admin/programmes">
+    <label for="newProgrammeName">Programme name</label>
+    <input id="newProgrammeName" name="programmeName" type="text" required>
+
+    <label for="newProvider">Provider</label>
+    <input id="newProvider" name="provider" type="text" required>
+
+    <label for="newLevel">Level</label>
+    <input id="newLevel" name="level" type="text" required>
+
+    <label for="newLocation">Location</label>
+    <input id="newLocation" name="location" type="text" required>
+
+    <label for="newDuration">Duration</label>
+    <input id="newDuration" name="duration" type="text" required>
+
+    <label for="newStudyArea">Study area</label>
+    <input id="newStudyArea" name="studyArea" type="text" required>
+
+    <button type="submit">Add programme</button>
+</form></details>
+</details>
+
+    </main>
+
+<script>
+    document.querySelectorAll('.admin-section').forEach(function (section) {
+        section.addEventListener('toggle', function () {
+            if (section.open) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

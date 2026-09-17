@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Sign in</h1>
+        </header>
+
+        <form action="/auth" method="post">
+            <label for="username">Name</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Sign in</button>
+        </form>
+
+        <p><a href="/register">Create an account</a></p>
+        <p><a href="/">Back to home</a></p>
+    </main>
+</body>
+</html>

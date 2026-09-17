@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmes | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Programmes</h1>
+            <p>Search and explore available study programmes.</p>
+        </header>
+
+        <section class="content-card programme-filters">
+            <form action="/programmes" method="get">
+                <label for="keyword">Search programmes</label>
+
+                <input
+                    type="search"
+                    id="keyword"
+                    name="keyword"
+                    value="<%= keyword %>"
+                    placeholder="e.g. business or Auckland"
+                >
+
+                <button class="button-primary" type="submit">Search</button>
+
+                <% if (keyword) { %>
+                    <a class="button-secondary" href="/programmes">Clear</a>
+                <% } %>
+            </form>
+
+            <form action="/programmes" method="get">
+                <label for="level">Level</label>
+                <input
+                    type="text"
+                    id="level"
+                    name="level"
+                    value="<%= filters.level %>"
+                    placeholder="e.g. Bachelor"
+                >
+
+                <label for="location">Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value="<%= filters.location %>"
+                    placeholder="e.g. Auckland"
+                >
+
+                <label for="studyArea">Study area</label>
+                <input
+                    type="text"
+                    id="studyArea"
+                    name="studyArea"
+                    value="<%= filters.studyArea %>"
+                    placeholder="e.g. Business"
+                >
+
+                <button class="button-primary" type="submit">Filter</button>
+                <a class="button-secondary" href="/programmes">Clear</a>
+            </form>
+        </section>
+
+        <p class="summary-label"><%= programmes.length %> programme<%= programmes.length === 1 ? '' : 's' %> found</p>
+
+        <% if (programmes.length === 0) { %>
+            <p class="empty-state">No programmes found.</p>
+        <% } else { %>
+            <div class="programme-grid">
+                <% programmes.forEach(function (programme) { %>
+                    <article class="content-card programme-card">
+                        <h2><%= programme.programmeName %></h2>
+                        <p><strong>Provider:</strong> <%= programme.provider %></p>
+                        <p><strong>Level:</strong> <%= programme.level %></p>
+                        <p><strong>Location:</strong> <%= programme.location %></p>
+                        <p><strong>Duration:</strong> <%= programme.duration %></p>
+                        <p><strong>Study area:</strong> <%= programme.studyArea %></p>
+                        <p class="status-note">Match score: <%= programme.matchScore %>/3</p>
+                        <a class="button-secondary" href="/programmes/<%= programme.programmeId %>">View programme</a>
+                    </article>
+                <% }); %>
+            </div>
+        <% } %>
+
+        <p><a href="/">Back to home</a></p>
+    </main>
+</body>
+</html>

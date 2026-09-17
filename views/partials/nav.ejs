@@ -1,0 +1,30 @@
+<nav class="main-nav" aria-label="Main navigation">
+    <a class="brand" href="/">EduBridge</a>
+
+    <div class="nav-links">
+        <% if (loggedin) { %>
+            <a href="/membersOnly">Dashboard</a>
+        <% } %>
+        <a href="/programmes">Programmes</a>
+        <a href="/applications">Applications</a>
+        <% if (loggedin && (userRole === 'agent' || userRole === 'admin')) { %>
+            <a href="/training">Training</a>
+        <% } %>
+        <% if (loggedin) { %>
+            <a href="/knowledge">Knowledge</a>
+        <% } %>
+    </div>
+
+    <div class="nav-account">
+        <% if (loggedin) { %>
+            <span class="nav-username"><%= username %></span>
+            <% if (userRole === 'admin') { %>
+                <a href="/admin">Admin</a>
+            <% } %>
+            <a href="/logout">Log out</a>
+        <% } else { %>
+            <a href="/login">Log in</a>
+            <a href="/register">Register</a>
+        <% } %>
+    </div>
+</nav>

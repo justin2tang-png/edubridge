@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <section class="intro">
+            <p class="label">For education agents</p>
+            <h1>Help students choose their next course.</h1>
+            <p class="intro-text">
+                EduBridge brings programme information, application updates and
+                training notes into one place for everyday study planning.
+            </p>
+        </section>
+
+        <section class="feature-list" aria-labelledby="feature-heading">
+            <h2 id="feature-heading">The plan</h2>
+            <div class="feature-grid">
+                <article>
+                    <h3>Compare programmes</h3>
+                    <p>Review providers, locations, study levels and course details.</p>
+                </article>
+                <article>
+                    <h3>Track applications</h3>
+                    <p>Keep a simple record of each student's next application step.</p>
+                </article>
+                <article>
+                    <h3>Keep learning</h3>
+                    <p>Use short training modules while working through the process.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>EduBridge</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title>Knowledge Base</title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Knowledge Base</h1>
+            <p>Search guidance and information for programmes and applications.</p>
+        </header>
+
+        <form class="content-card" method="GET" action="/knowledge">
+            <label for="keyword">Search resources</label>
+            <input
+                type="search"
+                id="keyword"
+                name="keyword"
+                value="<%= keyword %>"
+            >
+            <button class="button-primary" type="submit">Search</button>
+        </form>
+
+        <p class="summary-label">
+            <%= articles.length %> article<%= articles.length === 1 ? '' : 's' %> found
+        </p>
+
+    <% if (articles.length === 0) { %>
+        <p class="empty-state">No articles found. Try another search.</p>
+    <% } else { %>
+        <% articles.forEach(function (article) { %>
+            <article class="knowledge-card">
+                <h2><%= article.title %></h2>
+                <p><span class="category-badge"><%= article.category %></span></p>
+                <p class="knowledge-content"><%= article.content %></p>
+                <p class="status-note">Source: <%= article.sourceLabel %></p>
+                <p class="status-note">Updated: <%= article.updatedAt %></p>
+            </article>
+        <% }); %>
+    <% } %>
+    </main>
+</body>
+</html>

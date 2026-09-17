@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Members Area</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Dashboard</h1>
+            <p>Welcome, <%= username %>.</p>
+        </header>
+
+    <% if (typeof dashboard !== 'undefined' && dashboard.role === 'student') { %>
+        <section class="dashboard-section">
+            <h2>Student dashboard</h2>
+            <div class="dashboard-grid">
+                <% if (typeof dashboard.applicationTotal !== 'undefined') { %>
+                    <article class="summary-card">
+                        <h3>My Applications</h3>
+                        <p class="summary-number"><%= dashboard.applicationTotal %></p>
+                    </article>
+                <% } %>
+                <% Object.keys(dashboard.applicationStatusCounts).forEach(function (status) { %>
+                    <article class="summary-card">
+                        <h3 class="summary-label"><%= status %></h3>
+                        <p class="summary-number"><%= dashboard.applicationStatusCounts[status] %></p>
+                    </article>
+                <% }); %>
+            </div>
+            <h2>Quick actions</h2>
+            <div class="dashboard-actions">
+                <a href="/programmes">Browse Programmes</a>
+                <a href="/applications">My Applications</a>
+                <a href="/knowledge">Knowledge Base</a>
+            </div>
+        </section>
+    <% } %>
+
+    <% if (typeof dashboard !== 'undefined' && dashboard.role === 'agent') { %>
+        <section class="dashboard-section">
+            <h2>Agent dashboard</h2>
+            <div class="dashboard-grid">
+                <% if (typeof dashboard.applicationTotal !== 'undefined') { %>
+                    <article class="summary-card">
+                        <h3>Assigned Applications</h3>
+                        <p class="summary-number"><%= dashboard.applicationTotal %></p>
+                    </article>
+                <% } %>
+                <% Object.keys(dashboard.applicationStatusCounts).forEach(function (status) { %>
+                    <article class="summary-card">
+                        <h3 class="summary-label"><%= status %></h3>
+                        <p class="summary-number"><%= dashboard.applicationStatusCounts[status] %></p>
+                    </article>
+                <% }); %>
+                <% if (typeof dashboard.completedTrainingCount !== 'undefined') { %>
+                    <article class="summary-card">
+                        <h3>Completed Training Modules</h3>
+                        <p class="summary-number"><%= dashboard.completedTrainingCount %></p>
+                    </article>
+                <% } %>
+            </div>
+            <h2>Quick actions</h2>
+            <div class="dashboard-actions">
+                <a href="/applications">Applications</a>
+                <a href="/training">Training</a>
+                <a href="/knowledge">Knowledge Base</a>
+            </div>
+        </section>
+    <% } %>
+
+    <% if (typeof dashboard !== 'undefined' && dashboard.role === 'admin' && dashboard.admin) { %>
+        <section class="dashboard-section">
+            <h2>Admin dashboard</h2>
+            <div class="dashboard-grid">
+                <article class="summary-card">
+                    <h3>Accounts</h3>
+                    <p class="summary-number"><%= dashboard.admin.accountCount %></p>
+                </article>
+                <article class="summary-card">
+                    <h3>Programmes</h3>
+                    <p class="summary-number"><%= dashboard.admin.programmeCount %></p>
+                </article>
+                <article class="summary-card">
+                    <h3>Applications</h3>
+                    <p class="summary-number"><%= dashboard.admin.applicationCount %></p>
+                </article>
+                <article class="summary-card">
+                    <h3>Training Modules</h3>
+                    <p class="summary-number"><%= dashboard.admin.trainingModuleCount %></p>
+                </article>
+                <article class="summary-card">
+                    <h3>Knowledge Articles</h3>
+                    <p class="summary-number"><%= dashboard.admin.knowledgeArticleCount %></p>
+                </article>
+            </div>
+            <h2>Quick actions</h2>
+            <div class="dashboard-actions">
+                <a href="/admin">Admin Management</a>
+            </div>
+        </section>
+    <% } %>
+
+    <% if (userRole === 'agent' || userRole === 'admin') { %>
+        <h2>Invite a student</h2>
+        <form method="POST" action="/invitations">
+            <label for="studentEmail">Student email</label>
+            <input id="studentEmail" name="email" type="email" required>
+            <button type="submit">Create invitation link</button>
+        </form>
+
+        <% if (typeof invitationLink !== 'undefined' && invitationLink) { %>
+            <p>Invitation link:</p>
+            <p><a href="<%= invitationLink %>"><%= invitationLink %></a></p>
+        <% } %>
+    <% } %>
+    </main>
+</body>
+</html>

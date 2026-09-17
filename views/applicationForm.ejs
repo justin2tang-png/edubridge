@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title><%= application ? 'Edit Application' : 'New Application' %></title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+    
+    <main class="page-shell">
+        <header class="page-header">
+            <h1><%= application ? 'Edit Application' : 'New Application' %></h1>
+        </header>
+
+    <form method="POST" action="<%= application ? '/applications/' + application.applicationId + '/edit' : '/applications' %>">
+        <label for="studentLabel">Student label</label>
+        <input
+            type="text"
+            id="studentLabel"
+            name="studentLabel"
+            value="<%= application ? application.studentLabel : '' %>"
+            required
+        >
+
+        <br><br>
+
+        <label for="programmeId">Choose a programme</label>
+        <select id="programmeId" name="programmeId" required>
+            <option value="">Select one</option>
+
+            <% programmes.forEach(function(programme) { %>
+                <option value="<%= programme.programmeId %>" <%= application && application.programmeId === programme.programmeId ? 'selected' : '' %>>
+                    <%= programme.programmeName %>
+                </option>
+            <% }); %>
+        </select>
+
+        <br><br>
+
+        <button type="submit">Submit application</button>
+    </form>
+
+        <p>
+            <a href="/applications">View applications</a>
+        </p>
+    </main>
+</body>
+</html>

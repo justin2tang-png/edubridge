@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Join EduBridge</h1>
+            <p>Complete your account setup.</p>
+        </header>
+
+    <form method="POST" action="/invite/<%= token %>">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" required>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" minlength="3" required>
+
+        <button type="submit">Create account</button>
+        </form>
+    </main>
+</body>
+</html>

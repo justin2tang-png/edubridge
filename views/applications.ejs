@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Applications</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <% function formatDateTime(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var hours = date.getHours();
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear() + ', ' + (hours % 12 || 12) + ':' + minutes + ' ' + (hours >= 12 ? 'pm' : 'am');
+        } %>
+
+        <header class="page-header">
+            <h1>Applications</h1>
+            <p>View and manage programme applications.</p>
+            <p><a class="button-primary" href="/applications/new">New Application</a></p>
+        </header>
+
+        <% var applicationStatusCounts = {}; %>
+        <% applications.forEach(function(application) { %>
+            <% applicationStatusCounts[application.status] = (applicationStatusCounts[application.status] || 0) + 1; %>
+        <% }); %>
+
+        <section class="summary-grid" aria-label="Application summary">
+            <article class="summary-card">
+                <h2 class="summary-label">Total Applications</h2>
+                <p class="summary-number"><%= applications.length %></p>
+            </article>
+            <% Object.keys(applicationStatusCounts).forEach(function(status) { %>
+                <article class="summary-card">
+                    <h2 class="summary-label"><%= status %></h2>
+                    <p class="summary-number"><%= applicationStatusCounts[status] %></p>
+                </article>
+            <% }); %>
+        </section>
+
+        <% if (applications.length === 0) { %>
+            <p class="empty-state">No applications found.</p>
+        <% } else { %>
+        <section class="content-card table-wrapper">
+        <table class="data-table">
+            <tr>
+                <th>Student</th>
+                <th>Programme</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+
+            <% applications.forEach(function(application) { %>
+                <tr>
+                    <td><%= application.studentLabel %></td>
+                    <td><%= application.programmeName %></td>
+                    <td>
+                        <% var statusClass = 'status-other'; %>
+                        <% if (application.status === 'New') { statusClass = 'status-new'; } %>
+                        <% if (application.status === 'Submitted') { statusClass = 'status-submitted'; } %>
+                        <% if (application.status === 'Under Review') { statusClass = 'status-under-review'; } %>
+                        <% if (application.status === 'Documents Required') { statusClass = 'status-documents-required'; } %>
+                        <% if (application.status === 'Decision Made') { statusClass = 'status-decision-made'; } %>
+                        <span class="status-badge <%= statusClass %>"><%= application.status %></span>
+                        <p class="status-note">
+                            <% if (application.status === 'Submitted') { %>
+                                You can edit or delete this application.
+                            <% } else if (application.status === 'Under Review') { %>
+                                This application is being processed.
+                            <% } else if (application.status === 'Documents Required') { %>
+                                Further documents are required.
+                            <% } else if (application.status === 'Decision Made') { %>
+                                A decision has been recorded.
+                            <% } else if (application.status === 'New') { %>
+                                This application is new.
+                            <% } else { %>
+                                This application cannot be edited or deleted in its current status.
+                            <% } %>
+                        </p>
+    <% if (userRole === 'agent' || userRole === 'admin') { %>
+                    <form
+                        method="POST"
+                        action="/applications/<%= application.applicationId %>/status"
+                    >
+                        <select name="status" required>
+                            <option value="New" <%= application.status === 'New' ? 'selected' : '' %>>New</option>
+                            <option value="Submitted" <%= application.status === 'Submitted' ? 'selected' : '' %>>Submitted</option>
+                            <option value="Under Review" <%= application.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
+                            <option value="Documents Required" <%= application.status === 'Documents Required' ? 'selected' : '' %>>Documents Required</option>
+                            <option value="Decision Made" <%= application.status === 'Decision Made' ? 'selected' : '' %>>Decision Made</option>
+                        </select>
+
+                        <button type="submit">Update</button>
+                            </form>
+                        <% } else { %>
+                            <%= application.status %>
+                        <% } %>
+                    </td>
+                    <td><%= formatDateTime(application.createdAt) %></td>
+                    <td>
+                        <% if (application.status === 'Submitted') { %>
+                            <a class="button-secondary" href="/applications/<%= application.applicationId %>/edit">Edit</a>
+                            <form method="POST" action="/applications/<%= application.applicationId %>/delete" style="display:inline">
+                                <button class="button-danger" type="submit">Delete</button>
+                            </form>
+                        <% } else { %>
+                            <span class="status-note">Unavailable while this status is active.</span>
+                        <% } %>
+                    </td>
+                </tr>
+            <% }); %>
+        </table>
+        </section>
+        <% } %>
+    </main>
+</body>
+</html>
