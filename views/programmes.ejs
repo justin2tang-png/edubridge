@@ -75,13 +75,23 @@
                 <% programmes.forEach(function (programme) { %>
                     <article class="content-card programme-card">
                         <h2><%= programme.programmeName %></h2>
-                        <p><strong>Provider:</strong> <%= programme.provider %></p>
-                        <p><strong>Level:</strong> <%= programme.level %></p>
-                        <p><strong>Location:</strong> <%= programme.location %></p>
-                        <p><strong>Duration:</strong> <%= programme.duration %></p>
-                        <p><strong>Study area:</strong> <%= programme.studyArea %></p>
+                        <%- include('partials/providerMark', { provider: programme.provider }) %>
+                        <div class="programme-metadata" aria-label="Programme details">
+                            <span><strong>Level</strong><%= programme.level %></span>
+                            <span><strong>Location</strong><%= programme.location %></span>
+                            <span><strong>Duration</strong><%= programme.duration %></span>
+                            <span><strong>Study area</strong><%= programme.studyArea %></span>
+                        </div>
                         <p class="status-note">Match score: <%= programme.matchScore %>/3</p>
-                        <a class="button-secondary" href="/programmes/<%= programme.programmeId %>">View programme</a>
+                        <div class="card-actions">
+                            <a class="button-secondary" href="/programmes/<%= programme.programmeId %>">View programme</a>
+                            <% if (userRole === 'agent') { %>
+                                <% var programmeIsFavourite = favouriteProgrammeIds.indexOf(programme.programmeId) !== -1; %>
+                                <form method="post" action="/favourites/programmes/<%= programme.programmeId %>?from=list">
+                                    <button class="button-secondary favourite-action <%= programmeIsFavourite ? 'is-saved' : '' %>" type="submit" aria-pressed="<%= programmeIsFavourite %>"><span class="favourite-icon"><%- include('partials/icon', { icon: 'bookmark' }) %></span><%= programmeIsFavourite ? 'Saved' : 'Save' %></button>
+                                </form>
+                            <% } %>
+                        </div>
                     </article>
                 <% }); %>
             </div>
@@ -89,5 +99,6 @@
 
         <p><a href="/">Back to home</a></p>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

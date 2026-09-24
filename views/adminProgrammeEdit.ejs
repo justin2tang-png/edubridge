@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit <%= programme.programmeName %> | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body class="admin-page">
+    <%- include('partials/nav') %>
+
+    <main class="admin-shell">
+        <header class="page-header">
+            <h1>Edit programme</h1>
+            <p>Update the selected programme record.</p>
+        </header>
+
+        <form class="content-card" method="POST" action="/admin/programmes/edit">
+            <input type="hidden" name="programmeId" value="<%= programme.programmeId %>">
+
+            <label for="programmeName">Programme name</label>
+            <input id="programmeName" name="programmeName" type="text" value="<%= programme.programmeName %>" required>
+
+            <label for="provider">Provider</label>
+            <input id="provider" name="provider" type="text" value="<%= programme.provider %>" required>
+
+            <label for="level">Level</label>
+            <input id="level" name="level" type="text" value="<%= programme.level %>" required>
+
+            <label for="location">Location</label>
+            <input id="location" name="location" type="text" value="<%= programme.location %>" required>
+
+            <label for="duration">Duration</label>
+            <input id="duration" name="duration" type="text" value="<%= programme.duration %>" required>
+
+            <label for="studyArea">Study area</label>
+            <input id="studyArea" name="studyArea" type="text" value="<%= programme.studyArea %>" required>
+
+            <button type="submit">Save programme</button>
+            <a class="button-secondary" href="/admin">Back to Admin</a>
+        </form>
+    </main>
+
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

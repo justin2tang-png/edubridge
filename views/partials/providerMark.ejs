@@ -1,0 +1,15 @@
+<%
+    function providerVisual(providerName) {
+        var visuals = {
+            'Auckland University of Technology (AUT)': { shortName: 'AUT', logoPath: '/public/images/providers/aut-official.jpg', accentClass: 'provider-aut' },
+            'University of Auckland': { shortName: 'UoA', logoPath: '/public/images/providers/uoa-official.svg', accentClass: 'provider-uoa' },
+            'Lincoln University': { shortName: 'LU', logoPath: '/public/images/providers/lincoln-official.svg', accentClass: 'provider-lu' }
+        };
+        return visuals[providerName] || { shortName: providerName, logoPath: '', accentClass: 'provider-default' };
+    }
+    var providerIdentity = providerVisual(provider);
+%>
+<span class="provider-identity <%= providerIdentity.accentClass %>">
+    <% if (providerIdentity.logoPath) { %><img class="provider-logo" src="<%= providerIdentity.logoPath %>" alt="<%= providerIdentity.shortName %> logo" loading="lazy"><% } else { %><span class="provider-logo provider-logo-text" aria-hidden="true"><%= providerIdentity.shortName.slice(0, 3) %></span><% } %>
+    <span class="provider-name"><%= provider %></span>
+</span>

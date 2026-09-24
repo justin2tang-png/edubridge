@@ -20,6 +20,61 @@
         <li>Training modules: <%= trainingModuleCount %></li>
     </ul>
 
+    <% function statValue(value) { return value === null || typeof value === 'undefined' ? '0' : Number(value).toLocaleString('en-NZ', { maximumFractionDigits: 1 }); } %>
+    <% function chartMax(rows) { return rows.reduce(function (max, row) { return Math.max(max, Number(row.count) || 0); }, 0); } %>
+    <% function chartWidth(value, max) { return max > 0 ? Math.max(4, Math.round(Number(value) / max * 100)) : 0; } %>
+    <section class="admin-analytics" aria-labelledby="admin-analytics-title">
+        <div class="admin-analytics-heading">
+            <div>
+                <p class="eyebrow">Platform overview</p>
+                <h2 id="admin-analytics-title">Usage Statistics</h2>
+            </div>
+            <p class="admin-analytics-note">Aggregated from current local records.</p>
+        </div>
+
+        <div class="admin-stat-grid">
+            <article class="admin-stat-card admin-stat-students"><span>Users</span><strong><%= statValue(statistics.users.total) %></strong><small><%= statValue(statistics.users.students) %> Students · <%= statValue(statistics.users.agents) %> Agents · <%= statValue(statistics.users.admins) %> Admins</small></article>
+            <article class="admin-stat-card admin-stat-applications"><span>Applications</span><strong><%= statValue(applicationCount) %></strong><small><%= statistics.applicationStatuses.length %> status groups</small></article>
+            <article class="admin-stat-card admin-stat-programmes"><span>Programmes</span><strong><%= statValue(programmeCount) %></strong><small><%= statistics.programmeProviders.length %> providers · <%= statistics.programmeLevels.length %> levels</small></article>
+            <article class="admin-stat-card admin-stat-training"><span>Training modules</span><strong><%= statValue(statistics.training.totalModules) %></strong><small><%= statValue(statistics.training.completionCount) %> completion records</small></article>
+            <article class="admin-stat-card admin-stat-knowledge"><span>Knowledge</span><strong><%= statValue(statistics.knowledge.articles + statistics.knowledge.faqs) %></strong><small><%= statValue(statistics.knowledge.articles) %> articles · <%= statValue(statistics.knowledge.faqs) %> FAQs · <%= statValue(statistics.knowledge.currentDownloadableResources) %> downloadable</small></article>
+            <article class="admin-stat-card admin-stat-engagement"><span>Engagement</span><strong><%= statValue(statistics.engagement.recommendations + statistics.engagement.reviews) %></strong><small><%= statValue(statistics.engagement.recommendations) %> recommendations · <%= statValue(statistics.engagement.reviews) %> reviews · <%= statistics.engagement.averageReviewRating ? statValue(statistics.engagement.averageReviewRating) + '★ average' : 'No ratings' %></small></article>
+        </div>
+
+        <div class="admin-chart-grid">
+            <article class="admin-chart-card chart-applications">
+                <div class="admin-chart-heading"><div><p class="eyebrow">Applications</p><h3>Status distribution</h3></div><span><%= statValue(applicationCount) %> total</span></div>
+                <% var applicationMax = chartMax(statistics.applicationStatuses); %>
+                <% if (statistics.applicationStatuses.length === 0) { %><p class="admin-chart-empty">No application records yet.</p><% } %>
+                <% statistics.applicationStatuses.forEach(function (row) { %>
+                    <div class="admin-chart-row"><span><%= row.status %></span><div class="admin-chart-track"><i style="width:<%= chartWidth(row.count, applicationMax) %>%"></i></div><strong><%= row.count %></strong></div>
+                <% }); %>
+            </article>
+
+            <article class="admin-chart-card chart-programmes">
+                <div class="admin-chart-heading"><div><p class="eyebrow">Programmes</p><h3>By provider</h3></div><span><%= statistics.programmeProviders.length %> providers</span></div>
+                <% var providerMax = chartMax(statistics.programmeProviders); %>
+                <% statistics.programmeProviders.forEach(function (row) { %>
+                    <div class="admin-chart-row"><span title="<%= row.provider %>"><%= row.provider %></span><div class="admin-chart-track"><i style="width:<%= chartWidth(row.count, providerMax) %>%"></i></div><strong><%= row.count %></strong></div>
+                <% }); %>
+            </article>
+
+            <article class="admin-chart-card chart-programmes">
+                <div class="admin-chart-heading"><div><p class="eyebrow">Programmes</p><h3>By level</h3></div><span><%= statistics.programmeLevels.length %> levels</span></div>
+                <% var levelMax = chartMax(statistics.programmeLevels); %>
+                <% statistics.programmeLevels.forEach(function (row) { %>
+                    <div class="admin-chart-row"><span><%= row.level %></span><div class="admin-chart-track"><i style="width:<%= chartWidth(row.count, levelMax) %>%"></i></div><strong><%= row.count %></strong></div>
+                <% }); %>
+            </article>
+
+            <article class="admin-chart-card chart-training">
+                <div class="admin-chart-heading"><div><p class="eyebrow">Training</p><h3>Completion coverage</h3></div><span><%= statValue(statistics.training.completionRate) %>%</span></div>
+                <div class="admin-chart-row"><span>Modules with completion</span><div class="admin-chart-track"><i style="width:<%= chartWidth(statistics.training.completedModuleCount, statistics.training.totalModules) %>%"></i></div><strong><%= statistics.training.completedModuleCount %>/<%= statistics.training.totalModules %></strong></div>
+                <p class="admin-chart-footnote">Average quiz score: <%= statistics.training.averageQuizScore ? statValue(statistics.training.averageQuizScore) + '/' + statValue(statistics.training.averageQuizTotal) + ' (' + statValue(statistics.training.averageQuizPercent) + '%)' : 'No attempts' %>.</p>
+            </article>
+        </div>
+    </section>
+
 <details class="admin-section">
 <summary>Accounts</summary>
 
@@ -30,6 +85,7 @@
         <th>Email</th>
         <th>Role</th>
         <th>Assigned agent</th>
+        <th>Account</th>
     </tr>
 
     <% users.forEach(function(user) { %>
@@ -71,6 +127,15 @@
                     </form>
                 <% } else { %>
                     <%= user.agentName || 'Not applicable' %>
+                <% } %>
+            </td>
+            <td>
+                <% if (String(user.id) === String(userId)) { %>
+                    <span>Current account</span>
+                <% } else { %>
+                    <form method="POST" action="/admin/accounts/<%= user.id %>/delete">
+                        <button class="button-danger" type="submit">Delete</button>
+                    </form>
                 <% } %>
             </td>
         </tr>
@@ -207,6 +272,23 @@
 <details class="admin-section">
 <summary>Programmes</summary>
 
+<table class="data-table">
+    <tr>
+        <th>Programme ID</th>
+        <th>Name</th>
+        <th>Provider</th>
+        <th>Actions</th>
+    </tr>
+    <% programmes.forEach(function(programme) { %>
+        <tr>
+            <td><%= programme.programmeId %></td>
+            <td><%= programme.programmeName %></td>
+            <td><%= programme.provider %></td>
+            <td><a class="button-secondary button-compact" href="/admin/programmes/<%= programme.programmeId %>/edit">Edit</a></td>
+        </tr>
+    <% }); %>
+</table>
+
 <details class="admin-action"><summary>Edit programme</summary>
 <form method="POST" action="/admin/programmes/edit">
     <label for="programmeId">Programme ID</label>
@@ -267,7 +349,44 @@
 </form></details>
 </details>
 
+<details class="admin-section">
+<summary>Programme recommendations (read-only)</summary>
+<table class="data-table">
+    <tr><th>Student</th><th>Agent</th><th>Programme</th><th>Status</th><th>Reason</th><th>Student comment</th><th>Created</th></tr>
+    <% recommendations.forEach(function(recommendation) { %>
+        <tr>
+            <td><%= recommendation.studentName %></td>
+            <td><%= recommendation.agentName %></td>
+            <td><%= recommendation.programmeName %> · <%= recommendation.provider %></td>
+            <td><%= recommendation.status %></td>
+            <td><%= recommendation.reason %></td>
+            <td><%= recommendation.studentComment || '—' %></td>
+            <td><%= recommendation.createdAt %></td>
+        </tr>
+    <% }); %>
+</table>
+</details>
+
+<details class="admin-section">
+<summary>Agent reviews (read-only)</summary>
+<table class="data-table">
+    <tr><th>Student</th><th>Agent</th><th>Application</th><th>Programme</th><th>Rating</th><th>Comment</th><th>Date</th></tr>
+    <% reviews.forEach(function(review) { %>
+        <tr>
+            <td><%= review.studentName %></td>
+            <td><%= review.agentName %></td>
+            <td>#<%= review.applicationId %></td>
+            <td><%= review.programmeName %></td>
+            <td><%- include('partials/rating', { rating: review.rating, compact: true }) %></td>
+            <td><%= review.comment %></td>
+            <td><%= review.createdAt %></td>
+        </tr>
+    <% }); %>
+</table>
+</details>
+
     </main>
+    <%- include('partials/shellEnd') %>
 
 <script>
     document.querySelectorAll('.admin-section').forEach(function (section) {

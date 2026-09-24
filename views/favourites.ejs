@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourites | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+    <main class="page-shell favourites-page">
+        <header class="page-header">
+            <p class="eyebrow">Agent workspace</p>
+            <h1>Favourites</h1>
+            <p>Keep useful programmes and Knowledge articles close at hand.</p>
+        </header>
+
+        <section class="favourites-section" aria-labelledby="saved-programmes-title">
+            <div class="section-heading">
+                <div><p class="eyebrow">Saved resources</p><h2 id="saved-programmes-title">Saved Programmes</h2></div>
+                <span class="summary-label"><%= programmes.length %> saved</span>
+            </div>
+            <% if (programmes.length === 0) { %>
+                <div class="empty-state favourites-empty-state"><h3>No saved programmes yet.</h3><p>Save a programme from the Programmes page when you want to revisit it.</p></div>
+            <% } else { %>
+                <div class="favourites-list">
+                    <% programmes.forEach(function (programme) { %>
+                        <article class="content-card favourite-row">
+                            <div><h3><%= programme.programmeName %></h3><p><%= programme.provider %></p><span><%= programme.level %> · <%= programme.location %></span></div>
+                            <a class="button-secondary" href="/programmes/<%= programme.itemId %>">Open</a>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
+
+        <section class="favourites-section" aria-labelledby="saved-knowledge-title">
+            <div class="section-heading">
+                <div><p class="eyebrow">Saved resources</p><h2 id="saved-knowledge-title">Saved Knowledge</h2></div>
+                <span class="summary-label"><%= articles.length %> saved</span>
+            </div>
+            <% if (articles.length === 0) { %>
+                <div class="empty-state favourites-empty-state"><h3>No saved Knowledge articles yet.</h3><p>Save an article from the Knowledge Base when it is useful for future student conversations.</p></div>
+            <% } else { %>
+                <div class="favourites-list">
+                    <% articles.forEach(function (article) { %>
+                        <article class="content-card favourite-row">
+                            <div><h3><%= article.title %></h3><p><%= article.category %></p></div>
+                            <a class="button-secondary" href="/knowledge/<%= article.itemId %>">Open</a>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

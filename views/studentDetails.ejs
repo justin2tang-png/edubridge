@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= student.name %> | Students</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell student-detail-page">
+        <% function formatDate(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) { return value; }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
+        } %>
+        <% function formatDateTime(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) { return value; }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var hours = date.getHours();
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear() + ', ' + (hours % 12 || 12) + ':' + minutes + ' ' + (hours >= 12 ? 'pm' : 'am');
+        } %>
+        <% var statusClass = function (status) {
+            if (status === 'New') { return 'status-new'; }
+            if (status === 'Under Review' || status === 'Documents Required') { return 'status-under-review'; }
+            if (status === 'Accepted' || status === 'Completed') { return 'status-submitted'; }
+            if (status === 'Rejected' || status === 'Withdrawn') { return 'status-rejected'; }
+            return 'status-other';
+        }; %>
+
+        <header class="page-header student-detail-header">
+            <p class="case-breadcrumb"><a href="/students">Students</a> / Student</p>
+            <div class="student-detail-title-row">
+                <div>
+                    <h1><%= student.name %></h1>
+                    <p><%= student.email %> · Assigned agent: <%= student.agentName || 'Unassigned' %></p>
+                </div>
+                <a class="button-secondary" href="/students">Back to Students</a>
+            </div>
+        </header>
+
+        <section class="student-detail-grid">
+            <div class="student-detail-main">
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Student record</p><h2>Overview</h2></div>
+                    <dl class="case-detail-list">
+                        <div><dt>Name</dt><dd><%= student.name %></dd></div>
+                        <div><dt>Email</dt><dd><%= student.email %></dd></div>
+                        <div><dt>Role</dt><dd><%= student.role %></dd></div>
+                        <div><dt>Assigned Agent</dt><dd><%= student.agentName || 'Unassigned' %></dd></div>
+                        <div><dt>Applications</dt><dd><%= applications.length %></dd></div>
+                    </dl>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Application records</p><h2>Applications</h2></div>
+                    <% if (applications.length === 0) { %>
+                        <p class="case-empty-note">No application records.</p>
+                    <% } else { %>
+                        <div class="student-application-list">
+                            <% applications.forEach(function (application) { %>
+                                <div class="student-application-row">
+                                    <div><strong><%= application.programmeName %></strong><span><%= application.provider %> · Created <%= formatDate(application.createdAt) %></span></div>
+                                    <span class="status-badge <%= statusClass(application.status) %>"><%= application.status %></span>
+                                    <% if (application.unreadCount > 0) { %><span class="unread-badge"><%= application.unreadCount %> unread</span><% } %>
+                                    <a class="button-secondary button-compact" href="/applications/<%= application.applicationId %>">View Application</a>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Programme guidance</p><h2>Programme Recommendations</h2></div>
+                    <% if (recommendations.length === 0) { %>
+                        <p class="case-empty-note">No programme recommendations yet.</p>
+                    <% } else { %>
+                        <div class="student-application-list">
+                            <% recommendations.forEach(function (recommendation) { %>
+                                <div class="student-application-row">
+                                    <div>
+                                        <strong><%= recommendation.programmeName %></strong>
+                                        <span><%= recommendation.provider %> · <%= recommendation.level %></span>
+                                        <span><%= recommendation.reason %></span>
+                                        <% if (recommendation.studentComment) { %><span>Student: <%= recommendation.studentComment %></span><% } %>
+                                    </div>
+                                    <span class="status-badge status-other"><%= recommendation.status %></span>
+                                    <span><%= formatDate(recommendation.createdAt) %></span>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+
+                    <% if (userRole === 'agent') { %>
+                        <details class="admin-action">
+                            <summary>Recommend Programme</summary>
+                            <form method="POST" action="/students/<%= student.id %>/recommendations">
+                                <label for="recommendation-programme">Programme</label>
+                                <select id="recommendation-programme" name="programmeId" required>
+                                    <option value="">Select programme</option>
+                                    <% programmes.forEach(function (programme) { %>
+                                        <option value="<%= programme.programmeId %>"><%= programme.programmeName %> — <%= programme.provider %> · <%= programme.level %></option>
+                                    <% }); %>
+                                </select>
+                                <label for="recommendation-reason">Why this programme?</label>
+                                <textarea id="recommendation-reason" name="reason" required></textarea>
+                                <button type="submit">Recommend Programme</button>
+                            </form>
+                        </details>
+                    <% } %>
+                </article>
+            </div>
+
+            <aside class="student-detail-side">
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Conversation activity</p><h2>Recent Messages</h2></div>
+                    <% if (messages.length === 0) { %>
+                        <p class="case-empty-note">No messages yet.</p>
+                    <% } else { %>
+                        <div class="student-message-list">
+                            <% messages.forEach(function (message) { %>
+                                <a href="/applications/<%= message.applicationId %>">
+                                    <strong><%= message.senderName %></strong>
+                                    <span><%= message.programmeName %></span>
+                                    <span><%= message.messageText.length > 90 ? message.messageText.slice(0, 90) + '...' : message.messageText %></span>
+                                    <time><%= formatDateTime(message.createdAt) %></time>
+                                </a>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </article>
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Recorded activity</p><h2>Activity Summary</h2></div>
+                    <p class="case-empty-note"><%= applications.length %> application<%= applications.length === 1 ? '' : 's' %> recorded.</p>
+                    <p class="case-empty-note"><%= messages.length %> recent conversation message<%= messages.length === 1 ? '' : 's' %> shown.</p>
+                </article>
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Student feedback</p><h2>Student Feedback</h2></div>
+                    <% if (reviews.length === 0) { %>
+                        <p class="case-empty-note">No completed-application feedback yet.</p>
+                    <% } else { %>
+                        <% reviews.forEach(function (review) { %>
+                            <div class="case-empty-note">
+                                <strong><%= review.programmeName %></strong>
+                                <%- include('partials/rating', { rating: review.rating, compact: true }) %>
+                                <span><%= review.comment %></span>
+                                <time><%= formatDate(review.createdAt) %></time>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </article>
+            </aside>
+        </section>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

@@ -7,117 +7,168 @@
 <body>
     <%- include('partials/nav') %>
 
-    <main class="page-shell">
-        <% function formatDateTime(value) {
+    <main class="page-shell applications-page">
+        <% function formatDate(value) {
             var date = new Date(value);
             if (Number.isNaN(date.getTime())) {
                 return value;
             }
             var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            var hours = date.getHours();
-            var minutes = String(date.getMinutes()).padStart(2, '0');
-            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear() + ', ' + (hours % 12 || 12) + ':' + minutes + ' ' + (hours >= 12 ? 'pm' : 'am');
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
         } %>
+        <% function applicationUrl(tabStatus) {
+            var params = [];
+            if (filters.q) { params.push('q=' + encodeURIComponent(filters.q)); }
+            if (filters.programme) { params.push('programme=' + encodeURIComponent(filters.programme)); }
+            if (filters.provider) { params.push('provider=' + encodeURIComponent(filters.provider)); }
+            if (filters.from) { params.push('from=' + encodeURIComponent(filters.from)); }
+            if (filters.to) { params.push('to=' + encodeURIComponent(filters.to)); }
+            if (filters.agent) { params.push('agent=' + encodeURIComponent(filters.agent)); }
+            if (tabStatus) { params.push('status=' + encodeURIComponent(tabStatus)); }
+            return '/applications' + (params.length ? '?' + params.join('&') : '');
+        } %>
+        <% var pipelineStatuses = ['New', 'Documents Required', 'Under Review', 'Offer Received', 'Accepted', 'Completed']; %>
 
-        <header class="page-header">
-            <h1>Applications</h1>
-            <p>View and manage programme applications.</p>
-            <p><a class="button-primary" href="/applications/new">New Application</a></p>
+        <header class="page-header applications-header">
+            <div>
+                <h1>Applications</h1>
+                <p>Track and manage student applications.</p>
+            </div>
+            <a class="button-primary" href="/applications/new">New Application</a>
         </header>
 
-        <% var applicationStatusCounts = {}; %>
-        <% applications.forEach(function(application) { %>
-            <% applicationStatusCounts[application.status] = (applicationStatusCounts[application.status] || 0) + 1; %>
-        <% }); %>
+        <form class="application-filters" method="GET" action="/applications">
+            <div class="filter-field filter-student">
+                <label for="application-q">Student</label>
+                <input id="application-q" name="q" type="search" value="<%= filters.q %>" placeholder="Search student name">
+            </div>
+            <div class="filter-field filter-programme">
+                <label for="application-programme">Programme</label>
+                <input id="application-programme" name="programme" type="search" value="<%= filters.programme %>" placeholder="Search programme name">
+            </div>
+            <div class="filter-field">
+                <label for="application-provider">Provider</label>
+                <select id="application-provider" name="provider">
+                    <option value="">All providers</option>
+                    <% providers.forEach(function (item) { %>
+                        <option value="<%= item.provider %>" <%= filters.provider === item.provider ? 'selected' : '' %>><%= item.provider %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="application-from">Created from</label>
+                <input id="application-from" name="from" type="date" value="<%= filters.from %>">
+            </div>
+            <div class="filter-field">
+                <label for="application-to">Created to</label>
+                <input id="application-to" name="to" type="date" value="<%= filters.to %>">
+            </div>
+            <% if (userRole === 'admin') { %>
+                <div class="filter-field">
+                    <label for="application-agent">Agent</label>
+                    <select id="application-agent" name="agent">
+                        <option value="">All agents</option>
+                        <% agents.forEach(function (agent) { %>
+                            <option value="<%= agent.id %>" <%= String(filters.agent) === String(agent.id) ? 'selected' : '' %>><%= agent.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            <% } %>
+            <div class="filter-actions">
+                <a class="button-secondary" href="/applications">Reset</a>
+                <button class="button-primary" type="submit">Search</button>
+            </div>
+        </form>
 
-        <section class="summary-grid" aria-label="Application summary">
-            <article class="summary-card">
-                <h2 class="summary-label">Total Applications</h2>
-                <p class="summary-number"><%= applications.length %></p>
-            </article>
-            <% Object.keys(applicationStatusCounts).forEach(function(status) { %>
-                <article class="summary-card">
-                    <h2 class="summary-label"><%= status %></h2>
-                    <p class="summary-number"><%= applicationStatusCounts[status] %></p>
-                </article>
+        <nav class="application-tabs" aria-label="Application status filters">
+            <a class="<%= !filters.status ? 'is-active' : '' %>" href="<%= applicationUrl('') %>">All <span><%= totalCount %></span></a>
+            <% pipelineStatuses.forEach(function (tabStatus) { %>
+                <a class="<%= filters.status === tabStatus ? 'is-active' : '' %>" href="<%= applicationUrl(tabStatus) %>"><%= tabStatus %> <span><%= statusCounts[tabStatus] || 0 %></span></a>
             <% }); %>
-        </section>
+        </nav>
 
         <% if (applications.length === 0) { %>
-            <p class="empty-state">No applications found.</p>
+            <section class="empty-state application-empty-state">
+                <h2>No applications found.</h2>
+                <% if (filters.q || filters.programme || filters.provider || filters.status || filters.from || filters.to || filters.agent) { %>
+                    <p>Try changing your search or filters.</p>
+                    <a class="button-secondary" href="/applications">Reset Filters</a>
+                <% } %>
+            </section>
         <% } else { %>
-        <section class="content-card table-wrapper">
-        <table class="data-table">
-            <tr>
-                <th>Student</th>
-                <th>Programme</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-
-            <% applications.forEach(function(application) { %>
-                <tr>
-                    <td><%= application.studentLabel %></td>
-                    <td><%= application.programmeName %></td>
-                    <td>
-                        <% var statusClass = 'status-other'; %>
-                        <% if (application.status === 'New') { statusClass = 'status-new'; } %>
-                        <% if (application.status === 'Submitted') { statusClass = 'status-submitted'; } %>
-                        <% if (application.status === 'Under Review') { statusClass = 'status-under-review'; } %>
-                        <% if (application.status === 'Documents Required') { statusClass = 'status-documents-required'; } %>
-                        <% if (application.status === 'Decision Made') { statusClass = 'status-decision-made'; } %>
-                        <span class="status-badge <%= statusClass %>"><%= application.status %></span>
-                        <p class="status-note">
-                            <% if (application.status === 'Submitted') { %>
-                                You can edit or delete this application.
-                            <% } else if (application.status === 'Under Review') { %>
-                                This application is being processed.
-                            <% } else if (application.status === 'Documents Required') { %>
-                                Further documents are required.
-                            <% } else if (application.status === 'Decision Made') { %>
-                                A decision has been recorded.
-                            <% } else if (application.status === 'New') { %>
-                                This application is new.
-                            <% } else { %>
-                                This application cannot be edited or deleted in its current status.
-                            <% } %>
-                        </p>
-    <% if (userRole === 'agent' || userRole === 'admin') { %>
-                    <form
-                        method="POST"
-                        action="/applications/<%= application.applicationId %>/status"
-                    >
-                        <select name="status" required>
-                            <option value="New" <%= application.status === 'New' ? 'selected' : '' %>>New</option>
-                            <option value="Submitted" <%= application.status === 'Submitted' ? 'selected' : '' %>>Submitted</option>
-                            <option value="Under Review" <%= application.status === 'Under Review' ? 'selected' : '' %>>Under Review</option>
-                            <option value="Documents Required" <%= application.status === 'Documents Required' ? 'selected' : '' %>>Documents Required</option>
-                            <option value="Decision Made" <%= application.status === 'Decision Made' ? 'selected' : '' %>>Decision Made</option>
-                        </select>
-
-                        <button type="submit">Update</button>
-                            </form>
-                        <% } else { %>
-                            <%= application.status %>
-                        <% } %>
-                    </td>
-                    <td><%= formatDateTime(application.createdAt) %></td>
-                    <td>
-                        <% if (application.status === 'Submitted') { %>
-                            <a class="button-secondary" href="/applications/<%= application.applicationId %>/edit">Edit</a>
-                            <form method="POST" action="/applications/<%= application.applicationId %>/delete" style="display:inline">
-                                <button class="button-danger" type="submit">Delete</button>
-                            </form>
-                        <% } else { %>
-                            <span class="status-note">Unavailable while this status is active.</span>
-                        <% } %>
-                    </td>
-                </tr>
-            <% }); %>
-        </table>
-        </section>
+            <section class="application-table-panel">
+                <div class="table-wrapper">
+                    <table class="data-table applications-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Programme</th>
+                                <th>Status</th>
+                                <% if (userRole === 'admin') { %><th>Assigned Agent</th><% } %>
+                                <th>Created</th>
+                                <th>Messages</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% applications.forEach(function (application) { %>
+                                <tr>
+                                    <td>
+                                        <strong><%= application.ownerName || application.studentLabel %></strong>
+                                        <span class="table-secondary"><%= application.ownerEmail || application.studentLabel %></span>
+                                    </td>
+                                    <td>
+                                        <strong><%= application.programmeName %></strong>
+                                        <span class="table-secondary"><%= application.provider %></span>
+                                    </td>
+                                    <td>
+                                        <% var statusClass = 'status-other'; %>
+                                        <% if (application.status === 'New') { statusClass = 'status-new'; } %>
+                                        <% if (application.status === 'Submitted' || application.status === 'Accepted' || application.status === 'Completed') { statusClass = 'status-submitted'; } %>
+                                        <% if (application.status === 'Under Review' || application.status === 'Documents Required') { statusClass = 'status-under-review'; } %>
+                                        <% if (application.status === 'Rejected' || application.status === 'Withdrawn') { statusClass = 'status-rejected'; } %>
+                                        <span class="status-badge <%= statusClass %>"><%= application.status %></span>
+                                        <% if (userRole === 'agent' || userRole === 'admin') { %>
+                                            <form class="status-inline-form" method="POST" action="/applications/<%= application.applicationId %>/status">
+                                                <select name="status" aria-label="Update status for application <%= application.applicationId %>" required>
+                                                    <% statuses.forEach(function (optionStatus) { %>
+                                                        <option value="<%= optionStatus %>" <%= application.status === optionStatus ? 'selected' : '' %>><%= optionStatus %></option>
+                                                    <% }); %>
+                                                </select>
+                                                <button type="submit">Update</button>
+                                            </form>
+                                        <% } %>
+                                    </td>
+                                    <% if (userRole === 'admin') { %>
+                                        <td><%= application.agentName || 'Unassigned' %></td>
+                                    <% } %>
+                                    <td><%= formatDate(application.createdAt) %></td>
+                                    <td>
+                                        <a class="message-count" href="/applications/<%= application.applicationId %>">
+                                            <% if (application.unreadCount > 0) { %>
+                                                <span class="unread-badge"><%= application.unreadCount %> unread</span>
+                                            <% } else { %>
+                                                <span class="no-unread">&mdash;</span>
+                                            <% } %>
+                                        </a>
+                                    </td>
+                                    <td class="application-actions">
+                                        <a class="button-primary button-compact" href="/applications/<%= application.applicationId %>">View Application</a>
+                                        <% if (application.status === 'Submitted') { %>
+                                            <a class="button-secondary button-compact" href="/applications/<%= application.applicationId %>/edit">Edit</a>
+                                            <form method="POST" action="/applications/<%= application.applicationId %>/delete">
+                                                <button class="button-danger button-compact" type="submit">Delete</button>
+                                            </form>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         <% } %>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

@@ -7,40 +7,148 @@
 <body>
     <%- include('partials/nav') %>
 
-    <main class="page-shell">
-        <header class="page-header">
+    <main class="page-shell knowledge-page">
+        <% function formatDate(value) {
+            if (!value) return '';
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+        } %>
+        <% function preview(value) {
+            var text = (value || '').trim();
+            return text.length > 180 ? text.slice(0, 177).trimEnd() + '...' : text;
+        } %>
+
+        <header class="page-header knowledge-header">
             <h1>Knowledge Base</h1>
-            <p>Search guidance and information for programmes and applications.</p>
+            <p>Find guidance, reference material and practical information.</p>
         </header>
 
-        <form class="content-card" method="GET" action="/knowledge">
-            <label for="keyword">Search resources</label>
-            <input
-                type="search"
-                id="keyword"
-                name="keyword"
-                value="<%= keyword %>"
-            >
+        <section class="knowledge-faq-entry" aria-labelledby="knowledge-faq-title">
+            <div>
+                <p class="eyebrow">Quick answers</p>
+                <h2 id="knowledge-faq-title">Frequently Asked Questions</h2>
+                <p>Find quick answers to common programme and application questions.</p>
+            </div>
+            <a class="button-primary" href="/knowledge/faqs">Browse FAQs</a>
+        </section>
+
+        <section class="knowledge-quick-access" aria-labelledby="knowledge-quick-access-title">
+            <div class="knowledge-section-heading">
+                <div>
+                    <p class="eyebrow">Quick access</p>
+                    <h2 id="knowledge-quick-access-title">Knowledge Library</h2>
+                </div>
+            </div>
+            <div class="knowledge-quick-access-grid">
+                <a href="/knowledge" class="knowledge-quick-access-block">
+                    <strong>Articles</strong>
+                    <span>Browse guidance and reference material.</span>
+                </a>
+                <a href="/knowledge/faqs" class="knowledge-quick-access-block">
+                    <strong>FAQs</strong>
+                    <span>Find quick answers to common questions.</span>
+                </a>
+                <a href="/knowledge/files" class="knowledge-quick-access-block is-featured">
+                    <strong>File Library</strong>
+                    <span>Browse provider resources and general reference material.</span>
+                </a>
+            </div>
+        </section>
+
+        <form class="knowledge-search" method="GET" action="/knowledge">
+            <div>
+                <p class="eyebrow">Knowledge Search</p>
+                <label for="knowledge-query">Search articles, guidance and resources...</label>
+                <input
+                    type="search"
+                    id="knowledge-query"
+                    name="q"
+                    value="<%= keyword %>"
+                    placeholder="Search articles, guidance and resources..."
+                >
+            </div>
+            <% if (selectedCategory) { %>
+                <input type="hidden" name="category" value="<%= selectedCategory %>">
+            <% } %>
             <button class="button-primary" type="submit">Search</button>
         </form>
 
-        <p class="summary-label">
-            <%= articles.length %> article<%= articles.length === 1 ? '' : 's' %> found
-        </p>
+        <section class="knowledge-category-section" aria-labelledby="knowledge-categories-title">
+            <div class="knowledge-section-heading">
+                <div>
+                    <p class="eyebrow">Browse resources</p>
+                    <h2 id="knowledge-categories-title">Categories</h2>
+                </div>
+                <% if (selectedCategory || keyword) { %>
+                    <a class="button-secondary button-compact" href="/knowledge">Clear filters</a>
+                <% } %>
+            </div>
+            <% if (categories.length === 0) { %>
+                <p class="knowledge-empty-note">No categories available.</p>
+            <% } else { %>
+                <div class="knowledge-category-grid">
+                    <% categories.forEach(function (item) { %>
+                        <a
+                            class="knowledge-category-block <%= selectedCategory === item.category ? 'is-selected' : '' %>"
+                            href="/knowledge?category=<%= encodeURIComponent(item.category) %><%= keyword ? '&q=' + encodeURIComponent(keyword) : '' %>"
+                        >
+                            <span class="knowledge-category-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" role="presentation"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-10Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+                            </span>
+                            <span class="knowledge-category-name"><%= item.category %></span>
+                            <span class="knowledge-category-count"><%= item.articleCount %> article<%= item.articleCount === 1 ? '' : 's' %></span>
+                            <span class="knowledge-category-description">Browse guidance and reference material in this category.</span>
+                            <span class="knowledge-category-link">Open category <span aria-hidden="true">&rarr;</span></span>
+                        </a>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
 
-    <% if (articles.length === 0) { %>
-        <p class="empty-state">No articles found. Try another search.</p>
-    <% } else { %>
-        <% articles.forEach(function (article) { %>
-            <article class="knowledge-card">
-                <h2><%= article.title %></h2>
-                <p><span class="category-badge"><%= article.category %></span></p>
-                <p class="knowledge-content"><%= article.content %></p>
-                <p class="status-note">Source: <%= article.sourceLabel %></p>
-                <p class="status-note">Updated: <%= article.updatedAt %></p>
-            </article>
-        <% }); %>
-    <% } %>
+        <section class="knowledge-articles-section" aria-labelledby="knowledge-articles-title">
+            <div class="knowledge-section-heading">
+                <div>
+                    <p class="eyebrow"><%= selectedCategory || 'Resource library' %></p>
+                    <h2 id="knowledge-articles-title"><%= keyword || selectedCategory ? 'Articles' : 'Latest Articles' %></h2>
+                </div>
+                <p class="knowledge-result-count"><%= articles.length %> article<%= articles.length === 1 ? '' : 's' %></p>
+            </div>
+
+            <% if (articles.length === 0) { %>
+                <div class="knowledge-empty-state">
+                    <h2>No articles found.</h2>
+                    <% if (keyword || selectedCategory) { %>
+                        <p>Try changing your search or category.</p>
+                    <% } %>
+                </div>
+            <% } else { %>
+                <div class="knowledge-article-grid">
+                    <% articles.forEach(function (article) { %>
+                        <article class="knowledge-resource-card">
+                            <div class="knowledge-resource-meta">
+                                <span class="category-badge"><%= article.category %></span>
+                                <% if (formatDate(article.updatedAt)) { %>
+                                    <time datetime="<%= new Date(article.updatedAt).toISOString() %>">Updated <%= formatDate(article.updatedAt) %></time>
+                                <% } %>
+                            </div>
+                            <h3><%= article.title %></h3>
+                            <p><%= preview(article.content) %></p>
+                            <div class="card-actions">
+                                <a class="knowledge-read-link" href="/knowledge/<%= article.articleId %>">Read Article <span aria-hidden="true">&rarr;</span></a>
+                                <% if (userRole === 'agent') { %>
+                                    <% var articleIsFavourite = favouriteArticleIds.indexOf(article.articleId) !== -1; %>
+                                    <form method="post" action="/favourites/knowledge/<%= article.articleId %>?from=list">
+                                        <button class="button-secondary favourite-action <%= articleIsFavourite ? 'is-saved' : '' %>" type="submit" aria-pressed="<%= articleIsFavourite %>"><span class="favourite-icon"><%- include('partials/icon', { icon: 'bookmark' }) %></span><%= articleIsFavourite ? 'Saved' : 'Save' %></button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

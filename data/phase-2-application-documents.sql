@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS applicationDocuments (
+    documentId INT NOT NULL AUTO_INCREMENT,
+    applicationId INT NOT NULL,
+    uploadedByUserId INT NOT NULL,
+    documentType VARCHAR(60) NOT NULL,
+    originalFileName VARCHAR(255) NOT NULL,
+    storedFileName VARCHAR(255) NOT NULL,
+    mimeType VARCHAR(120) NOT NULL,
+    fileSize INT NOT NULL,
+    reviewStatus VARCHAR(40) NOT NULL DEFAULT 'Uploaded',
+    reviewNote TEXT NULL,
+    uploadedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewedByUserId INT NULL,
+    reviewedAt DATETIME NULL,
+    PRIMARY KEY (documentId),
+    KEY idx_application_documents_application (applicationId),
+    KEY idx_application_documents_uploader (uploadedByUserId),
+    KEY idx_application_documents_reviewer (reviewedByUserId),
+    CONSTRAINT fk_application_documents_application FOREIGN KEY (applicationId) REFERENCES applications(applicationId) ON DELETE RESTRICT,
+    CONSTRAINT fk_application_documents_uploader FOREIGN KEY (uploadedByUserId) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_application_documents_reviewer FOREIGN KEY (reviewedByUserId) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT chk_application_documents_review_status CHECK (reviewStatus IN ('Uploaded', 'Received', 'Reviewed', 'Needs Replacement'))
+);

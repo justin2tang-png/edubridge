@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Result | Training Centre</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell training-result-page">
+        <section class="case-panel training-result-panel <%= passed ? 'is-passed' : 'is-failed' %>">
+            <p class="eyebrow">Knowledge Check</p>
+            <% if (passed) { %>
+                <h1>Quiz Passed</h1>
+                <p class="training-result-score"><%= score %> of <%= totalQuestions %> correct</p>
+                <p>This module is now complete.</p>
+                <a class="button-primary" href="/training">Back to Training Centre</a>
+            <% } else { %>
+                <h1>Quiz Not Passed</h1>
+                <p class="training-result-score"><%= score %> of <%= totalQuestions %> correct</p>
+                <p>Review the learning content and try again.</p>
+                <div class="training-result-actions">
+                    <a class="button-secondary" href="/training/<%= trainingModuleId %>">Review Module</a>
+                    <a class="button-primary" href="/training/<%= trainingModuleId %>/quiz">Try Again</a>
+                </div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title>FAQs | Knowledge Base</title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell knowledge-faq-page">
+        <% function formatDate(value) {
+            if (!value) return '';
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+        } %>
+        <% function preview(value) {
+            var text = (value || '').trim();
+            return text.length > 190 ? text.slice(0, 187).trimEnd() + '...' : text;
+        } %>
+
+        <header class="page-header knowledge-faq-header">
+            <p class="case-breadcrumb"><a href="/knowledge">Knowledge Base</a> / FAQs</p>
+            <h1>Frequently Asked Questions</h1>
+            <p>Find quick answers to common programme and application questions.</p>
+        </header>
+
+        <form class="knowledge-faq-filters" method="GET" action="/knowledge/faqs">
+            <div class="knowledge-faq-search">
+                <label for="faq-query">Search FAQs</label>
+                <input id="faq-query" name="q" type="search" value="<%= keyword %>" placeholder="Search questions and answers...">
+            </div>
+            <div>
+                <label for="faq-country">Country</label>
+                <select id="faq-country" name="country">
+                    <option value="">All countries</option>
+                    <% countries.forEach(function (item) { %>
+                        <option value="<%= item %>" <%= selectedCountry === item ? 'selected' : '' %>><%= item %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div>
+                <label for="faq-provider">Provider</label>
+                <select id="faq-provider" name="provider">
+                    <option value="">All providers</option>
+                    <% providers.forEach(function (item) { %>
+                        <option value="<%= item %>" <%= selectedProvider === item ? 'selected' : '' %>><%= item %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div>
+                <label for="faq-category">Category</label>
+                <select id="faq-category" name="category">
+                    <option value="">All categories</option>
+                    <% categories.forEach(function (item) { %>
+                        <option value="<%= item %>" <%= selectedCategory === item ? 'selected' : '' %>><%= item %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="knowledge-faq-filter-actions">
+                <a class="button-secondary" href="/knowledge/faqs">Reset</a>
+                <button class="button-primary" type="submit">Search</button>
+            </div>
+        </form>
+
+        <section class="knowledge-faq-list" aria-labelledby="faq-list-title">
+            <div class="knowledge-section-heading">
+                <div>
+                    <p class="eyebrow">Knowledge Base / FAQs</p>
+                    <h2 id="faq-list-title">FAQ Library</h2>
+                </div>
+                <p class="knowledge-result-count"><%= faqs.length %> result<%= faqs.length === 1 ? '' : 's' %></p>
+            </div>
+
+            <% if (faqs.length === 0) { %>
+                <div class="knowledge-empty-state">
+                    <h2>No FAQs found.</h2>
+                    <p>Try changing your search or filters.</p>
+                </div>
+            <% } else { %>
+                <div class="knowledge-faq-grid">
+                    <% faqs.forEach(function (faq) { %>
+                        <article class="knowledge-faq-card">
+                            <div class="knowledge-resource-meta">
+                                <span class="category-badge"><%= faq.category %></span>
+                                <% if (faq.updatedAt && formatDate(faq.updatedAt)) { %>
+                                    <time datetime="<%= new Date(faq.updatedAt).toISOString() %>">Updated <%= formatDate(faq.updatedAt) %></time>
+                                <% } %>
+                            </div>
+                            <h3><%= faq.question %></h3>
+                            <p class="knowledge-faq-context">
+                                <% if (faq.provider) { %><span><strong>Provider:</strong> <%= faq.provider %></span><% } %>
+                                <% if (faq.country) { %><span><strong>Country:</strong> <%= faq.country %></span><% } %>
+                            </p>
+                            <p class="knowledge-faq-answer-preview"><%= preview(faq.answer) %></p>
+                            <a class="knowledge-read-link" href="/knowledge/faqs/<%= faq.faqId %>">Read Answer <span aria-hidden="true">&rarr;</span></a>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

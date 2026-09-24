@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Recommendations | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+    <main class="page-shell">
+        <header class="page-header">
+            <p class="eyebrow">Student workspace</p>
+            <h1>My Recommendations</h1>
+            <p>Review programme suggestions from your agent and share your response.</p>
+        </header>
+
+        <% if (recommendations.length === 0) { %>
+            <p class="empty-state">No programme recommendations yet.</p>
+        <% } else { %>
+            <section class="student-application-list" aria-label="Programme recommendations">
+                <% recommendations.forEach(function (recommendation) { %>
+                    <article class="case-panel">
+                        <div class="case-panel-heading">
+                            <div>
+                                <p class="eyebrow">From <%= recommendation.agentName %></p>
+                                <h2><%= recommendation.programmeName %></h2>
+                            </div>
+                            <span class="status-badge status-other"><%= recommendation.status %></span>
+                        </div>
+                        <dl class="case-detail-list">
+                            <div><dt>Provider</dt><dd><%= recommendation.provider %></dd></div>
+                            <div><dt>Level</dt><dd><%= recommendation.level %></dd></div>
+                            <div><dt>Location</dt><dd><%= recommendation.location %></dd></div>
+                            <div><dt>Duration</dt><dd><%= recommendation.duration %></dd></div>
+                            <div><dt>Agent reason</dt><dd><%= recommendation.reason %></dd></div>
+                        </dl>
+                        <% if (recommendation.studentComment) { %>
+                            <p class="case-empty-note"><strong>Your comment:</strong> <%= recommendation.studentComment %></p>
+                        <% } %>
+                        <% if (recommendation.status === 'Pending') { %>
+                            <form method="POST" action="/recommendations/<%= recommendation.recommendationId %>/respond">
+                                <label for="recommendation-status-<%= recommendation.recommendationId %>">Your response</label>
+                                <select id="recommendation-status-<%= recommendation.recommendationId %>" name="status" required>
+                                    <option value="Interested">Interested</option>
+                                    <option value="Not Interested">Not Interested</option>
+                                    <option value="Request Changes">Request Changes</option>
+                                </select>
+                                <label for="recommendation-comment-<%= recommendation.recommendationId %>">Comment (required for Request Changes)</label>
+                                <textarea id="recommendation-comment-<%= recommendation.recommendationId %>" name="studentComment"></textarea>
+                                <button type="submit">Submit Response</button>
+                            </form>
+                        <% } else { %>
+                            <p class="case-empty-note">Response recorded.</p>
+                        <% } %>
+                    </article>
+                <% }); %>
+            </section>
+        <% } %>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

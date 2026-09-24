@@ -1,30 +1,89 @@
-<nav class="main-nav" aria-label="Main navigation">
-    <a class="brand" href="/">EduBridge</a>
+<% if (useAppShell) { %>
+    <div class="app-shell">
+        <aside class="app-sidebar" aria-label="Application navigation">
+            <a class="app-brand" href="/membersOnly">EduBridge</a>
 
-    <div class="nav-links">
-        <% if (loggedin) { %>
-            <a href="/membersOnly">Dashboard</a>
-        <% } %>
-        <a href="/programmes">Programmes</a>
-        <a href="/applications">Applications</a>
-        <% if (loggedin && (userRole === 'agent' || userRole === 'admin')) { %>
-            <a href="/training">Training</a>
-        <% } %>
-        <% if (loggedin) { %>
-            <a href="/knowledge">Knowledge</a>
-        <% } %>
-    </div>
+            <nav class="sidebar-nav">
+                <a class="nav-dashboard <%= pageTitle === 'Dashboard' ? 'is-active' : '' %>" href="/membersOnly"><span class="nav-symbol"><%- include('icon', { icon: 'dashboard' }) %></span>Dashboard</a>
+                <% if (userRole === 'agent' || userRole === 'admin') { %>
+                    <a class="nav-students <%= pageTitle === 'Students' ? 'is-active' : '' %>" href="/students"><span class="nav-symbol"><%- include('icon', { icon: 'students' }) %></span>Students</a>
+                <% } %>
+                <a class="nav-applications <%= pageTitle === 'Applications' ? 'is-active' : '' %>" href="/applications"><span class="nav-symbol"><%- include('icon', { icon: 'applications' }) %></span>Applications</a>
+                <a class="nav-programmes <%= pageTitle === 'Programmes' ? 'is-active' : '' %>" href="/programmes"><span class="nav-symbol"><%- include('icon', { icon: 'programmes' }) %></span>Programmes</a>
+                <% if (userRole === 'agent' || userRole === 'admin') { %>
+                    <a class="nav-training <%= pageTitle === 'Training' || pageTitle === 'Training Centre' ? 'is-active' : '' %>" href="/training"><span class="nav-symbol"><%- include('icon', { icon: 'training' }) %></span>Training</a>
+                <% } %>
+                <% if (userRole === 'agent' || userRole === 'admin') { %>
+                    <a class="nav-knowledge <%= pageTitle === 'Knowledge Base' ? 'is-active' : '' %>" href="/knowledge"><span class="nav-symbol"><%- include('icon', { icon: 'knowledge' }) %></span>Knowledge Base</a>
+                <% } %>
+                <% if (userRole === 'agent') { %>
+                    <a class="nav-favourites <%= pageTitle === 'Favourites' ? 'is-active' : '' %>" href="/favourites"><span class="nav-symbol"><%- include('icon', { icon: 'bookmark' }) %></span>Favourites</a>
+                <% } %>
+            </nav>
 
-    <div class="nav-account">
-        <% if (loggedin) { %>
-            <span class="nav-username"><%= username %></span>
             <% if (userRole === 'admin') { %>
-                <a href="/admin">Admin</a>
+                <div class="sidebar-admin">
+                    <p class="sidebar-label">Admin</p>
+                    <a class="nav-admin <%= pageTitle === 'Admin' ? 'is-active' : '' %>" href="/admin"><span class="nav-symbol"><%- include('icon', { icon: 'admin' }) %></span>Admin</a>
+                </div>
             <% } %>
-            <a href="/logout">Log out</a>
-        <% } else { %>
-            <a href="/login">Log in</a>
-            <a href="/register">Register</a>
-        <% } %>
-    </div>
-</nav>
+
+            <div class="sidebar-account">
+                <div class="sidebar-user">
+                    <strong><%= username %></strong>
+                    <span><%= userRole %></span>
+                </div>
+                <a href="/logout">Log out</a>
+            </div>
+        </aside>
+
+        <div class="app-workspace">
+            <header class="topbar">
+                <div class="topbar-title">
+                    <span class="breadcrumb-label">Workspace</span>
+                    <h1><%= pageTitle %></h1>
+                </div>
+                <div class="topbar-spacer"></div>
+                <div class="topbar-account">
+                    <a class="topbar-messages" href="/applications">Messages<% if (typeof dashboard !== 'undefined' && dashboard.role !== 'admin' && typeof dashboard.unreadMessageCount !== 'undefined' && dashboard.unreadMessageCount > 0) { %> <span class="unread-badge"><%= dashboard.unreadMessageCount %></span><% } %></a>
+                    <a class="topbar-messages" href="/notifications" aria-label="Notifications">
+                        <%- include('icon', { icon: 'notifications' }) %>
+                        Notifications<% if (unreadNotificationCount > 0) { %> <span class="unread-badge"><%= unreadNotificationCount %></span><% } %>
+                    </a>
+                    <span class="topbar-username"><%= username %></span>
+                    <span class="topbar-role"><%= userRole %></span>
+                </div>
+            </header>
+<% } else { %>
+    <nav class="main-nav" aria-label="Main navigation">
+        <a class="brand" href="/">EduBridge</a>
+        <div class="nav-links">
+            <% if (loggedin) { %>
+                <a href="/membersOnly">Dashboard</a>
+            <% } %>
+            <a href="/programmes">Programmes</a>
+            <a href="/applications">Applications</a>
+            <% if (loggedin && (userRole === 'agent' || userRole === 'admin')) { %>
+                <a href="/training">Training</a>
+            <% } %>
+            <% if (loggedin && (userRole === 'agent' || userRole === 'admin')) { %>
+                <a href="/knowledge">Knowledge</a>
+            <% } %>
+            <% if (loggedin && userRole === 'agent') { %>
+                <a href="/favourites">Favourites</a>
+            <% } %>
+        </div>
+        <div class="nav-account">
+            <% if (loggedin) { %>
+                <span class="nav-username"><%= username %></span>
+                <% if (userRole === 'admin') { %>
+                    <a href="/admin">Admin</a>
+                <% } %>
+                <a href="/logout">Log out</a>
+            <% } else { %>
+                <a href="/login">Log in</a>
+                <a href="/register">Register</a>
+            <% } %>
+        </div>
+    </nav>
+<% } %>

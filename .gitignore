@@ -5,6 +5,8 @@ node_modules/
 npm-debug.log*
 *.log
 .vscode/
+uploads/application-documents/*
+uploads/knowledge-files/*
 AGENTS.md
 README.md
 evidence/

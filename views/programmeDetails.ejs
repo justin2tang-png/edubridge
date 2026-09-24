@@ -9,20 +9,28 @@
 <body>
     <%- include('partials/nav') %>
     <main class="page-shell">
-        <header class="page-header">
+        <header class="page-header programme-detail-header">
             <h1><%= programme.programmeName %></h1>
+            <%- include('partials/providerMark', { provider: programme.provider }) %>
             <p>Programme details</p>
+            <% if (userRole === 'agent') { %>
+                <form method="post" action="/favourites/programmes/<%= programme.programmeId %>">
+                    <button class="button-secondary favourite-action <%= isFavourite ? 'is-saved' : '' %>" type="submit" aria-pressed="<%= isFavourite %>"><span class="favourite-icon"><%- include('partials/icon', { icon: 'bookmark' }) %></span><%= isFavourite ? 'Saved' : 'Save' %></button>
+                </form>
+            <% } %>
         </header>
 
-        <section class="content-card">
-            <p><strong>Provider:</strong> <%= programme.provider %></p>
-            <p><strong>Level:</strong> <%= programme.level %></p>
-            <p><strong>Location:</strong> <%= programme.location %></p>
-            <p><strong>Duration:</strong> <%= programme.duration %></p>
-            <p><strong>Study area:</strong> <%= programme.studyArea %></p>
+        <section class="content-card programme-detail-card">
+            <div class="programme-detail-grid">
+                <div><span>Level</span><strong><%= programme.level %></strong></div>
+                <div><span>Location</span><strong><%= programme.location %></strong></div>
+                <div><span>Duration</span><strong><%= programme.duration %></strong></div>
+                <div><span>Study area</span><strong><%= programme.studyArea %></strong></div>
+            </div>
         </section>
 
         <p><a href="/programmes">Back to programmes</a></p>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

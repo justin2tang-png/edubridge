@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title><%= faq.question %> | FAQs</title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell knowledge-faq-detail-page">
+        <% function formatDate(value) {
+            if (!value) return '';
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+        } %>
+
+        <header class="page-header knowledge-faq-detail-header">
+            <p class="case-breadcrumb"><a href="/knowledge">Knowledge Base</a> / <a href="/knowledge/faqs">FAQs</a></p>
+            <h1><%= faq.question %></h1>
+            <div class="knowledge-detail-meta">
+                <span class="category-badge"><%= faq.category %></span>
+                <% if (faq.provider) { %><span class="knowledge-faq-detail-label">Provider: <%= faq.provider %></span><% } %>
+                <% if (faq.country) { %><span class="knowledge-faq-detail-label">Country: <%= faq.country %></span><% } %>
+                <% if (faq.updatedAt && formatDate(faq.updatedAt)) { %>
+                    <time datetime="<%= new Date(faq.updatedAt).toISOString() %>">Updated <%= formatDate(faq.updatedAt) %></time>
+                <% } %>
+            </div>
+        </header>
+
+        <article class="knowledge-faq-detail-content">
+            <p class="eyebrow">Answer</p>
+            <div class="knowledge-article-body"><%= faq.answer %></div>
+        </article>
+
+        <p class="knowledge-detail-back"><a class="button-secondary" href="/knowledge/faqs">Back to FAQs</a></p>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

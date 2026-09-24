@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Knowledge Check | Training Centre</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell training-quiz-page">
+        <header class="page-header training-quiz-header">
+            <p class="case-breadcrumb"><a href="/training/<%= trainingModule.moduleId %>"><%= trainingModule.title %></a> / Knowledge Check</p>
+            <h1>Knowledge Check</h1>
+            <p><%= trainingModule.title %></p>
+        </header>
+
+        <form class="training-quiz-form" method="POST" action="/training/<%= trainingModule.moduleId %>/quiz">
+            <% questions.forEach(function (question, index) { %>
+                <fieldset class="quiz-question-card">
+                    <legend><span>Question <%= index + 1 %></span><%= question.questionText %></legend>
+                    <label><input type="radio" name="question_<%= question.questionId %>" value="A"> <strong>A</strong> <%= question.optionA %></label>
+                    <label><input type="radio" name="question_<%= question.questionId %>" value="B"> <strong>B</strong> <%= question.optionB %></label>
+                    <label><input type="radio" name="question_<%= question.questionId %>" value="C"> <strong>C</strong> <%= question.optionC %></label>
+                    <label><input type="radio" name="question_<%= question.questionId %>" value="D"> <strong>D</strong> <%= question.optionD %></label>
+                </fieldset>
+            <% }); %>
+            <div class="training-quiz-actions">
+                <a class="button-secondary" href="/training/<%= trainingModule.moduleId %>">Review Module</a>
+                <button class="button-primary" type="submit">Submit Answers</button>
+            </div>
+        </form>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

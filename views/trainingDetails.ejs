@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= trainingModule.title %> | Training Centre</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell training-detail-page">
+        <header class="page-header training-detail-header">
+            <p class="case-breadcrumb"><a href="/training">Training Centre</a> / Module</p>
+            <h1><%= trainingModule.title %></h1>
+            <p><%= trainingModule.category || 'Not configured' %> · <%= trainingModule.level || 'Not configured' %> · <%= trainingModule.durationMinutes ? trainingModule.durationMinutes + ' min' : 'Not configured' %></p>
+        </header>
+
+        <div class="training-detail-grid">
+            <section class="training-detail-main">
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Module overview</p><h2>Overview</h2></div>
+                    <p class="training-detail-description"><%= trainingModule.description %></p>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Structured learning</p><h2>Learning Content</h2></div>
+                    <% if (sections.length === 0) { %>
+                        <p class="case-empty-note">This module does not have learning sections yet.</p>
+                    <% } else { %>
+                        <div class="training-section-list">
+                            <% sections.forEach(function (section, index) { %>
+                                <article class="training-section-item">
+                                    <span class="training-section-number"><%= index + 1 %></span>
+                                    <div>
+                                        <h3><%= section.sectionTitle %></h3>
+                                        <p><%= section.sectionContent %></p>
+                                    </div>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </article>
+            </section>
+
+            <aside class="training-detail-side">
+                <article class="case-panel training-progress-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Your progress</p><h2>Progress</h2></div>
+                    <% if (trainingModule.completedAt) { %>
+                        <span class="status-badge status-completed">Completed</span>
+                        <p class="case-empty-note">Completed on <%= trainingModule.completedAt.toLocaleDateString ? trainingModule.completedAt.toLocaleDateString('en-GB') : trainingModule.completedAt %>.</p>
+                    <% } else if (hasQuiz) { %>
+                        <span class="status-badge status-not-completed">Not started</span>
+                        <p class="case-empty-note">Complete the short quiz to finish this module.</p>
+                        <p><a class="button-primary" href="/training/<%= trainingModule.moduleId %>/quiz">Take Quiz</a></p>
+                    <% } else { %>
+                        <span class="status-badge status-not-completed">Not started</span>
+                        <p class="case-empty-note">Completion is recorded when you finish this module.</p>
+                        <form class="training-complete-form" method="POST" action="/training/<%= trainingModule.moduleId %>/complete">
+                            <button class="button-primary" type="submit">Mark as Completed</button>
+                        </form>
+                    <% } %>
+                    <p><a href="/training">Back to Training Centre</a></p>
+                </article>
+            </aside>
+        </div>
+
+        <% var trainingVideoResources = trainingResources.filter(function (resource) { return resource.resourceType === 'YouTube'; }); %>
+        <% var trainingLinkResources = trainingResources.filter(function (resource) { return resource.resourceType === 'Official Link'; }); %>
+        <% if (trainingVideoResources.length > 0) { %>
+            <section class="case-panel content-resource-section content-resource-section-training">
+                <div class="case-panel-heading"><p class="eyebrow">Watch &amp; Learn</p><h2>Watch &amp; Learn</h2></div>
+                <div class="resource-video-grid">
+                    <% trainingVideoResources.slice(0, 2).forEach(function (resource) { %>
+                        <article class="resource-video-card">
+                            <div class="resource-video-frame">
+                                <iframe src="<%= resource.embedUrl %>" title="<%= resource.title %>" loading="lazy" allowfullscreen></iframe>
+                            </div>
+                            <div class="resource-video-copy">
+                                <h3><%= resource.title %></h3>
+                                <% if (resource.sourceLabel) { %><p><%= resource.sourceLabel %></p><% } %>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            </section>
+        <% } %>
+        <% if (trainingLinkResources.length > 0) { %>
+            <section class="case-panel content-resource-section content-resource-section-training">
+                <div class="case-panel-heading"><p class="eyebrow">Further reading</p><h2>Related Resources</h2></div>
+                <div class="resource-link-list">
+                    <% trainingLinkResources.forEach(function (resource) { %>
+                        <a class="resource-link-row" href="<%= resource.externalUrl %>" target="_blank" rel="noopener noreferrer">
+                            <span class="resource-link-icon" aria-hidden="true">↗</span>
+                            <span class="resource-link-copy"><strong><%= resource.title %></strong><% if (resource.sourceLabel) { %><small><%= resource.sourceLabel %></small><% } %></span>
+                            <span class="resource-link-action">Open resource <span aria-hidden="true">↗</span></span>
+                        </a>
+                    <% }); %>
+                </div>
+            </section>
+        <% } %>
+
+        <section class="case-panel training-knowledge-check">
+            <div class="case-panel-heading"><p class="eyebrow">Assessment</p><h2>Knowledge Check</h2></div>
+            <% if (trainingModule.completedAt) { %>
+                <p class="case-empty-note">This module is completed.</p>
+            <% } else if (hasQuiz) { %>
+                <p class="case-empty-note">Complete the short quiz to finish this module.</p>
+                <a class="button-primary" href="/training/<%= trainingModule.moduleId %>/quiz">Take Quiz</a>
+            <% } else { %>
+                <p class="case-empty-note">Quiz not configured for this module.</p>
+            <% } %>
+        </section>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

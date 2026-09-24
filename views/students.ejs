@@ -7,32 +7,146 @@
 <body>
     <%- include('partials/nav') %>
 
-    <main class="page-shell">
-    <header class="page-header">
-        <h1>Students</h1>
-    </header>
+    <main class="page-shell students-page">
+        <% function formatDate(value) {
+            if (!value) { return '-'; }
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) { return value; }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
+        } %>
+        <% var progressClass = function (status) {
+            if (status === 'New') { return 'status-new'; }
+            if (status === 'Under Review' || status === 'Documents Required') { return 'status-under-review'; }
+            if (status === 'Accepted' || status === 'Completed') { return 'status-submitted'; }
+            if (status === 'Rejected' || status === 'Withdrawn') { return 'status-rejected'; }
+            return 'status-other';
+        }; %>
 
-    <% if (students.length === 0) { %>
-        <p class="empty-state">No students found.</p>
-    <% } else { %>
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Agent</th>
-            </tr>
+        <header class="page-header students-header">
+            <div>
+                <h1>Students</h1>
+                <p>Manage students and track their application progress.</p>
+            </div>
+            <a class="button-primary" href="/students/new">Add Student</a>
+        </header>
 
-            <% students.forEach(function(student) { %>
-                <tr>
-                    <td><%= student.id %></td>
-                    <td><%= student.name %></td>
-                    <td><%= student.email %></td>
-                    <td><%= student.agentName || 'Not assigned' %></td>
-                </tr>
-            <% }); %>
-        </table>
-    <% } %>
+        <section class="summary-grid students-summary" aria-label="Student summary">
+            <article class="summary-card">
+                <p class="summary-label">Assigned Students</p>
+                <p class="summary-number"><%= summary.assignedStudentCount %></p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Active Applications</p>
+                <p class="summary-number"><%= summary.activeApplicationCount %></p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Applications Needing Attention</p>
+                <p class="summary-number"><%= summary.attentionApplicationCount %></p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Unread Messages</p>
+                <p class="summary-number"><%= summary.unreadMessageCount %></p>
+            </article>
+        </section>
+
+        <form class="student-filters" method="GET" action="/students">
+            <div class="filter-field">
+                <label for="student-search">Student</label>
+                <input id="student-search" name="q" type="search" value="<%= filters.q %>" placeholder="Search name or email">
+            </div>
+            <div class="filter-field">
+                <label for="student-progress">Progress</label>
+                <select id="student-progress" name="progress">
+                    <option value="">All progress</option>
+                    <% progressStatuses.forEach(function (status) { %>
+                        <option value="<%= status %>" <%= filters.progress === status ? 'selected' : '' %>><%= status %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="student-programme">Programme</label>
+                <select id="student-programme" name="programme">
+                    <option value="">All programmes</option>
+                    <% programmes.forEach(function (programme) { %>
+                        <option value="<%= programme.programmeId %>" <%= String(filters.programme) === String(programme.programmeId) ? 'selected' : '' %>><%= programme.programmeName %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <% if (userRole === 'admin') { %>
+                <div class="filter-field">
+                    <label for="student-agent">Agent</label>
+                    <select id="student-agent" name="agent">
+                        <option value="">All agents</option>
+                        <% agents.forEach(function (agent) { %>
+                            <option value="<%= agent.id %>" <%= String(filters.agent) === String(agent.id) ? 'selected' : '' %>><%= agent.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            <% } %>
+            <div class="filter-actions">
+                <a class="button-secondary" href="/students">Reset</a>
+                <button class="button-primary" type="submit">Search</button>
+            </div>
+        </form>
+
+        <% if (students.length === 0) { %>
+            <section class="empty-state student-empty-state">
+                <h2>No students found.</h2>
+                <% if (filters.q || filters.progress || filters.programme || filters.agent) { %>
+                    <p>Try changing your search or filters.</p>
+                    <a class="button-secondary" href="/students">Reset Filters</a>
+                <% } %>
+            </section>
+        <% } else { %>
+            <section class="student-table-panel">
+                <div class="table-wrapper">
+                    <table class="data-table students-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <% if (userRole === 'admin') { %><th>Assigned Agent</th><% } %>
+                                <th>Applications</th>
+                                <th>Latest Progress</th>
+                                <th>Unread Messages</th>
+                                <th>Last Activity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% students.forEach(function (student) { %>
+                                <tr>
+                                    <td>
+                                        <strong><%= student.name %></strong>
+                                        <span class="table-secondary"><%= student.email %></span>
+                                    </td>
+                                    <% if (userRole === 'admin') { %><td><%= student.agentName || 'Unassigned' %></td><% } %>
+                                    <td><strong><%= student.applicationCount %></strong></td>
+                                    <td>
+                                        <% if (student.latestStatus) { %>
+                                            <span class="status-badge <%= progressClass(student.latestStatus) %>"><%= student.latestStatus %></span>
+                                            <span class="table-secondary"><%= student.latestProgrammeName || '' %></span>
+                                        <% } else { %>
+                                            <span class="table-secondary">No application</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (student.unreadCount > 0) { %>
+                                            <span class="unread-badge"><%= student.unreadCount %> unread</span>
+                                        <% } else { %>
+                                            <span class="no-unread">&mdash;</span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= formatDate(student.lastActivity) %></td>
+                                    <td><a class="button-primary button-compact" href="/students/<%= student.id %>">View Student</a></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        <% } %>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

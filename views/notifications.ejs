@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notifications | EduBridge</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+    <main class="page-shell">
+        <header class="page-header">
+            <p class="eyebrow">Workspace updates</p>
+            <div class="section-heading">
+                <div>
+                    <h1>Notifications</h1>
+                    <p>Important updates about recommendations, applications and feedback.</p>
+                </div>
+                <form method="POST" action="/notifications/read-all">
+                    <button class="button-secondary" type="submit">Mark all read</button>
+                </form>
+            </div>
+        </header>
+
+        <% if (notifications.length === 0) { %>
+            <p class="empty-state">No notifications yet.</p>
+        <% } else { %>
+            <section class="content-card" aria-label="Notifications">
+                <div class="student-application-list">
+                    <% notifications.forEach(function (notification) { %>
+                        <article class="student-application-row <%= notification.readAt ? '' : 'notification-unread' %>">
+                            <div>
+                                <strong><%= notification.title %></strong>
+                                <span><%= notification.message %></span>
+                                <time><%= new Date(notification.createdAt).toLocaleString('en-NZ') %></time>
+                            </div>
+                            <span class="status-badge <%= notification.readAt ? 'status-other' : 'status-submitted' %>"><%= notification.readAt ? 'Read' : 'Unread' %></span>
+                            <% if (notification.linkPath) { %>
+                                <form method="POST" action="/notifications/<%= notification.notificationId %>/open">
+                                    <button class="button-secondary button-compact" type="submit">Open</button>
+                                </form>
+                            <% } %>
+                        </article>
+                    <% }); %>
+                </div>
+            </section>
+        <% } %>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

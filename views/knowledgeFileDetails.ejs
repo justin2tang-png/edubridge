@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <title><%= file.title %> | File Library</title>
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell knowledge-file-detail-page">
+        <% function formatDate(value) {
+            if (!value) return '';
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+        } %>
+
+        <header class="page-header knowledge-file-detail-header">
+            <p class="case-breadcrumb"><a href="/knowledge">Knowledge Base</a> / <a href="/knowledge/files">File Library</a></p>
+            <h1><%= file.title %></h1>
+            <div class="knowledge-detail-meta">
+                <span class="category-badge"><%= file.resourceType || file.fileType %></span>
+                <% if (file.status === 'Archived') { %><span class="status-badge status-archived">Archived</span><% } %>
+                <% if (file.provider) { %><span class="knowledge-file-detail-label">Provider: <%= file.provider %></span><% } %>
+                <% if (file.country) { %><span class="knowledge-file-detail-label">Country: <%= file.country %></span><% } %>
+                <% if (file.updatedAt && formatDate(file.updatedAt)) { %>
+                    <time datetime="<%= new Date(file.updatedAt).toISOString() %>">Updated <%= formatDate(file.updatedAt) %></time>
+                <% } %>
+                <% if (file.sourceSystem) { %><span class="knowledge-faq-detail-label">Source: <%= file.sourceSystem %></span><% } %>
+                <% if (file.versionLabel) { %><span class="knowledge-file-detail-label">Version: <%= file.versionLabel %></span><% } %>
+            </div>
+        </header>
+
+        <article class="knowledge-file-detail-content">
+            <p class="eyebrow">Resource Description</p>
+            <p class="knowledge-file-detail-description"><%= file.description || 'No description provided.' %></p>
+            <% if (file.storedFileName) { %>
+                <a class="button-primary" href="/knowledge/files/<%= file.fileId %>/download">Download Resource</a>
+            <% } else { %>
+                <% try { var externalUrl = new URL(file.fileUrl || ''); } catch (error) { var externalUrl = null; } %>
+                <% var isSafeExternalUrl = externalUrl && externalUrl.protocol === 'https:'; %>
+                <% if (isSafeExternalUrl) { %>
+                    <a class="button-primary" href="<%= externalUrl.toString() %>" target="_blank" rel="noopener noreferrer">Open Resource</a>
+                <% } else { %>
+                    <p class="knowledge-file-invalid-link">This resource link is not available.</p>
+                <% } %>
+            <% } %>
+        </article>
+
+        <% if (isAdmin && file.status === 'Current' && file.storedFileName) { %>
+            <section class="knowledge-admin-file-actions">
+                <h2>Admin actions</h2>
+                <form method="POST" action="/admin/knowledge/files/<%= file.fileId %>/archive">
+                    <button class="button-secondary" type="submit">Archive Current Version</button>
+                </form>
+                <details class="knowledge-upload-panel">
+                    <summary>Replace / Upload New Version</summary>
+                    <form method="POST" action="/admin/knowledge/files/<%= file.fileId %>/replace" enctype="multipart/form-data">
+                        <input type="hidden" name="resourceGroup" value="<%= file.provider ? 'provider' : 'general' %>">
+                        <label for="replaceProvider">Provider</label>
+                        <input id="replaceProvider" name="provider" type="text" maxlength="150" value="<%= file.provider || '' %>" readonly>
+                        <label for="replaceResourceType">Resource Type</label>
+                        <input id="replaceResourceType" name="resourceType" type="text" maxlength="60" value="<%= file.resourceType || '' %>" readonly>
+                        <label for="replaceTitle">Title</label>
+                        <input id="replaceTitle" name="title" type="text" maxlength="255" value="<%= file.title %>" readonly>
+                        <label for="replaceDescription">Description</label>
+                        <textarea id="replaceDescription" name="description" maxlength="10000"><%= file.description || '' %></textarea>
+                        <label for="replaceVersionLabel">Version</label>
+                        <input id="replaceVersionLabel" name="versionLabel" type="text" maxlength="80">
+                        <label for="replaceFile">File</label>
+                        <input id="replaceFile" name="file" type="file" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.jpeg,.png" required>
+                        <button class="button-primary" type="submit">Create Current Version</button>
+                    </form>
+                </details>
+            </section>
+        <% } %>
+
+        <p class="knowledge-detail-back"><a class="button-secondary" href="/knowledge/files">Back to File Library</a></p>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

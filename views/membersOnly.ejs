@@ -8,23 +8,25 @@
     <%- include('partials/nav') %>
 
     <main class="page-shell">
-        <header class="page-header">
-            <h1>Dashboard</h1>
-            <p>Welcome, <%= username %>.</p>
-        </header>
-
     <% if (typeof dashboard !== 'undefined' && dashboard.role === 'student') { %>
         <section class="dashboard-section">
             <h2>Student dashboard</h2>
             <div class="dashboard-grid">
                 <% if (typeof dashboard.applicationTotal !== 'undefined') { %>
-                    <article class="summary-card">
+                    <article class="summary-card summary-accent-applications">
+                        <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'applications' }) %></span>
                         <h3>My Applications</h3>
                         <p class="summary-number"><%= dashboard.applicationTotal %></p>
                     </article>
                 <% } %>
+                <article class="summary-card summary-accent-notifications">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'notifications' }) %></span>
+                    <h3>Unread Messages</h3>
+                    <p class="summary-number"><%= dashboard.unreadMessageCount %></p>
+                </article>
                 <% Object.keys(dashboard.applicationStatusCounts).forEach(function (status) { %>
-                    <article class="summary-card">
+                    <article class="summary-card summary-accent-applications">
+                        <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'applications' }) %></span>
                         <h3 class="summary-label"><%= status %></h3>
                         <p class="summary-number"><%= dashboard.applicationStatusCounts[status] %></p>
                     </article>
@@ -34,40 +36,109 @@
             <div class="dashboard-actions">
                 <a href="/programmes">Browse Programmes</a>
                 <a href="/applications">My Applications</a>
-                <a href="/knowledge">Knowledge Base</a>
+                <a href="/recommendations">My Recommendations</a>
             </div>
         </section>
     <% } %>
 
     <% if (typeof dashboard !== 'undefined' && dashboard.role === 'agent') { %>
-        <section class="dashboard-section">
-            <h2>Agent dashboard</h2>
-            <div class="dashboard-grid">
-                <% if (typeof dashboard.applicationTotal !== 'undefined') { %>
-                    <article class="summary-card">
-                        <h3>Assigned Applications</h3>
-                        <p class="summary-number"><%= dashboard.applicationTotal %></p>
-                    </article>
-                <% } %>
-                <% Object.keys(dashboard.applicationStatusCounts).forEach(function (status) { %>
-                    <article class="summary-card">
-                        <h3 class="summary-label"><%= status %></h3>
-                        <p class="summary-number"><%= dashboard.applicationStatusCounts[status] %></p>
-                    </article>
-                <% }); %>
-                <% if (typeof dashboard.completedTrainingCount !== 'undefined') { %>
-                    <article class="summary-card">
-                        <h3>Completed Training Modules</h3>
-                        <p class="summary-number"><%= dashboard.completedTrainingCount %></p>
-                    </article>
-                <% } %>
-            </div>
-            <h2>Quick actions</h2>
-            <div class="dashboard-actions">
-                <a href="/applications">Applications</a>
-                <a href="/training">Training</a>
-                <a href="/knowledge">Knowledge Base</a>
-            </div>
+        <section class="agent-dashboard">
+            <header class="dashboard-hero">
+                <div>
+                    <p class="eyebrow">Agent workspace</p>
+                    <h2><%= new Date().getHours() < 12 ? 'Good morning' : (new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening') %>, <%= username %></h2>
+                    <p>Here's what's happening today.</p>
+                </div>
+                <time class="dashboard-date" datetime="<%= new Date().toISOString().slice(0, 10) %>"><%= new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %></time>
+            </header>
+
+            <section class="dashboard-cards" aria-label="Agent summary">
+                <article class="summary-card dashboard-summary-card summary-accent-applications">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'applications' }) %></span>
+                    <p class="summary-label">Applications needing attention</p>
+                    <p class="summary-number"><%= dashboard.attentionCount %></p>
+                    <p class="summary-caption">New or documents required</p>
+                </article>
+                <article class="summary-card dashboard-summary-card summary-accent-notifications">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'notifications' }) %></span>
+                    <p class="summary-label">Unread messages</p>
+                    <p class="summary-number"><%= dashboard.unreadMessageCount %></p>
+                    <p class="summary-caption">Across assigned applications</p>
+                </article>
+                <article class="summary-card dashboard-summary-card summary-accent-training">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'training' }) %></span>
+                    <p class="summary-label">Training incomplete</p>
+                    <p class="summary-number"><%= dashboard.incompleteTrainingCount %></p>
+                    <p class="summary-caption">Modules still to complete</p>
+                </article>
+                <article class="summary-card dashboard-summary-card summary-accent-students">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'students' }) %></span>
+                    <p class="summary-label">Assigned students</p>
+                    <p class="summary-number"><%= dashboard.assignedStudentCount %></p>
+                    <p class="summary-caption">Students in your scope</p>
+                </article>
+            </section>
+
+            <section class="dashboard-block">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Shortcuts</p>
+                        <h2>Quick Actions</h2>
+                    </div>
+                </div>
+                <div class="quick-action-grid">
+                    <a class="quick-action-card quick-action-students" href="/students"><span class="action-mark" aria-hidden="true"><%- include('partials/icon', { icon: 'students' }) %></span><strong>Add Student</strong><span>View assigned students</span></a>
+                    <a class="quick-action-card quick-action-applications" href="/applications/new"><span class="action-mark" aria-hidden="true"><%- include('partials/icon', { icon: 'applications' }) %></span><strong>Create Application</strong><span>Start a new application</span></a>
+                    <a class="quick-action-card quick-action-programmes" href="/programmes"><span class="action-mark" aria-hidden="true"><%- include('partials/icon', { icon: 'programmes' }) %></span><strong>Browse Programmes</strong><span>Explore available programmes</span></a>
+                    <a class="quick-action-card quick-action-training" href="/training"><span class="action-mark" aria-hidden="true"><%- include('partials/icon', { icon: 'training' }) %></span><strong>Training Centre</strong><span>Continue your training</span></a>
+                    <a class="quick-action-card quick-action-knowledge" href="/knowledge"><span class="action-mark" aria-hidden="true"><%- include('partials/icon', { icon: 'knowledge' }) %></span><strong>Knowledge Base</strong><span>Find guidance and resources</span></a>
+                </div>
+            </section>
+
+            <section class="dashboard-lower-grid">
+                <article class="dashboard-panel">
+                    <div class="section-heading">
+                        <div><p class="eyebrow">Overview</p><h2>My Applications</h2></div>
+                        <a href="/applications">View all</a>
+                    </div>
+                    <div class="status-list">
+                        <% Object.keys(dashboard.applicationStatusCounts).forEach(function (status) { %>
+                            <div class="status-list-row"><span><%= status %></span><strong><%= dashboard.applicationStatusCounts[status] %></strong></div>
+                        <% }); %>
+                    </div>
+                </article>
+
+                <article class="dashboard-panel">
+                    <div class="section-heading">
+                        <div><p class="eyebrow">Conversation</p><h2>Recent Messages</h2></div>
+                        <a href="/applications">View all</a>
+                    </div>
+                    <% if (dashboard.recentMessages.length === 0) { %>
+                        <p class="dashboard-empty">No messages in your assigned applications.</p>
+                    <% } else { %>
+                        <div class="recent-message-list">
+                            <% dashboard.recentMessages.forEach(function (message) { %>
+                                <a class="recent-message-row" href="/applications/<%= message.applicationId %>">
+                                    <span class="recent-message-copy"><strong><%= message.studentName %></strong><span><%= message.programmeName %></span><span><%= message.messageText.length > 72 ? message.messageText.slice(0, 72) + '...' : message.messageText %></span></span>
+                                    <span class="recent-message-time"><%= new Date(message.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %><% if (message.unread) { %><br><strong>Unread</strong><% } %></span>
+                                </a>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </article>
+
+                <article class="dashboard-panel">
+                    <div class="section-heading">
+                        <div><p class="eyebrow">Resources</p><h2>Knowledge Updates</h2></div>
+                        <a href="/knowledge">View all</a>
+                    </div>
+                    <div class="knowledge-update-list">
+                        <% dashboard.knowledgeUpdates.forEach(function (article) { %>
+                            <a class="knowledge-update-row" href="/knowledge"><strong><%= article.title %></strong><span><%= article.category %> · <%= new Date(article.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %></span></a>
+                        <% }); %>
+                    </div>
+                </article>
+            </section>
         </section>
     <% } %>
 
@@ -75,23 +146,28 @@
         <section class="dashboard-section">
             <h2>Admin dashboard</h2>
             <div class="dashboard-grid">
-                <article class="summary-card">
+                <article class="summary-card summary-accent-admin">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'admin' }) %></span>
                     <h3>Accounts</h3>
                     <p class="summary-number"><%= dashboard.admin.accountCount %></p>
                 </article>
-                <article class="summary-card">
+                <article class="summary-card summary-accent-programmes">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'programmes' }) %></span>
                     <h3>Programmes</h3>
                     <p class="summary-number"><%= dashboard.admin.programmeCount %></p>
                 </article>
-                <article class="summary-card">
+                <article class="summary-card summary-accent-applications">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'applications' }) %></span>
                     <h3>Applications</h3>
                     <p class="summary-number"><%= dashboard.admin.applicationCount %></p>
                 </article>
-                <article class="summary-card">
+                <article class="summary-card summary-accent-training">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'training' }) %></span>
                     <h3>Training Modules</h3>
                     <p class="summary-number"><%= dashboard.admin.trainingModuleCount %></p>
                 </article>
-                <article class="summary-card">
+                <article class="summary-card summary-accent-knowledge">
+                    <span class="summary-icon" aria-hidden="true"><%- include('partials/icon', { icon: 'knowledge' }) %></span>
                     <h3>Knowledge Articles</h3>
                     <p class="summary-number"><%= dashboard.admin.knowledgeArticleCount %></p>
                 </article>
@@ -103,19 +179,7 @@
         </section>
     <% } %>
 
-    <% if (userRole === 'agent' || userRole === 'admin') { %>
-        <h2>Invite a student</h2>
-        <form method="POST" action="/invitations">
-            <label for="studentEmail">Student email</label>
-            <input id="studentEmail" name="email" type="email" required>
-            <button type="submit">Create invitation link</button>
-        </form>
-
-        <% if (typeof invitationLink !== 'undefined' && invitationLink) { %>
-            <p>Invitation link:</p>
-            <p><a href="<%= invitationLink %>"><%= invitationLink %></a></p>
-        <% } %>
-    <% } %>
     </main>
+    <%- include('partials/shellEnd') %>
 </body>
 </html>

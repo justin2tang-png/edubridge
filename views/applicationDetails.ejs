@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Application #<%= application.applicationId %></title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell application-case-page">
+        <% function formatDate(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
+        } %>
+        <% function formatDateTime(value) {
+            var date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var hours = date.getHours();
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear() + ', ' + (hours % 12 || 12) + ':' + minutes + ' ' + (hours >= 12 ? 'pm' : 'am');
+        } %>
+        <% function formatFileSize(value) {
+            if (value < 1024) return value + ' B';
+            if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+            return (value / (1024 * 1024)).toFixed(1) + ' MB';
+        } %>
+        <% var statusClass = 'status-other'; %>
+        <% if (application.status === 'New') { statusClass = 'status-new'; } %>
+        <% if (application.status === 'Submitted' || application.status === 'Accepted' || application.status === 'Completed') { statusClass = 'status-submitted'; } %>
+        <% if (application.status === 'Under Review' || application.status === 'Documents Required') { statusClass = 'status-under-review'; } %>
+        <% if (application.status === 'Rejected' || application.status === 'Withdrawn') { statusClass = 'status-rejected'; } %>
+        <% var progressStatuses = ['New', 'Documents Required', 'Under Review', 'Offer Received', 'Accepted', 'Completed']; %>
+        <% var isTerminalException = application.status === 'Rejected' || application.status === 'Withdrawn'; %>
+
+        <header class="case-header">
+            <div>
+                <p class="case-breadcrumb"><a href="/applications">Applications</a> / Application #<%= application.applicationId %></p>
+                <div class="case-title-row">
+                    <h1><%= application.ownerName || application.studentLabel %> - <%= application.programmeName %></h1>
+                    <span class="status-badge <%= statusClass %>"><%= application.status %></span>
+                </div>
+                <p class="case-subtitle"><%= application.provider %> · Created <%= formatDate(application.createdAt) %></p>
+            </div>
+            <a class="button-secondary" href="/applications">Back to Applications</a>
+        </header>
+
+        <div class="application-case-grid">
+            <section class="case-overview-column">
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Case record</p><h2>Application Overview</h2></div>
+                    <dl class="case-detail-list">
+                        <div><dt>Application ID</dt><dd>#<%= application.applicationId %></dd></div>
+                        <div><dt>Status</dt><dd><span class="status-badge <%= statusClass %>"><%= application.status %></span></dd></div>
+                        <div><dt>Created</dt><dd><%= formatDate(application.createdAt) %></dd></div>
+                        <div><dt>Assigned Agent</dt><dd><%= application.agentName || 'Unassigned' %></dd></div>
+                        <div><dt>Provider</dt><dd><%= application.provider %></dd></div>
+                        <div><dt>Programme</dt><dd><%= application.programmeName %></dd></div>
+                    </dl>
+                    <% if (userRole === 'agent' || userRole === 'admin') { %>
+                        <form class="case-status-form" method="POST" action="/applications/<%= application.applicationId %>/status">
+                            <label for="case-status">Update status</label>
+                            <div>
+                                <select id="case-status" name="status" required>
+                                    <% statuses.forEach(function (optionStatus) { %>
+                                        <option value="<%= optionStatus %>" <%= application.status === optionStatus ? 'selected' : '' %>><%= optionStatus %></option>
+                                    <% }); %>
+                                </select>
+                                <button type="submit">Update</button>
+                            </div>
+                        </form>
+                    <% } %>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Account</p><h2>Student Details</h2></div>
+                    <dl class="case-detail-list">
+                        <div><dt>Name</dt><dd><%= application.ownerName || application.studentLabel %></dd></div>
+                        <div><dt>Email</dt><dd><%= application.ownerEmail || 'Not available' %></dd></div>
+                        <div><dt>Role</dt><dd><%= application.ownerRole || 'Student record' %></dd></div>
+                    </dl>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Programme</p><h2>Programme Details</h2></div>
+                    <dl class="case-detail-list">
+                        <div><dt>Programme name</dt><dd><%= application.programmeName %></dd></div>
+                        <div><dt>Provider</dt><dd><%= application.provider %></dd></div>
+                        <div><dt>Level</dt><dd><%= application.level %></dd></div>
+                        <div><dt>Location</dt><dd><%= application.location %></dd></div>
+                        <div><dt>Duration</dt><dd><%= application.duration %></dd></div>
+                        <div><dt>Study area</dt><dd><%= application.studyArea %></dd></div>
+                    </dl>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Evidence</p><h2>Application Documents</h2></div>
+                    <% if (userRole === 'student') { %>
+                        <form class="case-message-form" method="POST" action="/applications/<%= application.applicationId %>/documents" enctype="multipart/form-data">
+                            <label for="document-type">Document type</label>
+                            <select id="document-type" name="documentType" required>
+                                <option value="">Select document type</option>
+                                <% documentTypes.forEach(function (documentType) { %>
+                                    <option value="<%= documentType %>"><%= documentType %></option>
+                                <% }); %>
+                            </select>
+                            <label for="document-file">File (PDF, JPG, JPEG, or PNG; max 10 MB)</label>
+                            <input id="document-file" type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <button type="submit">Upload document</button>
+                        </form>
+                    <% } %>
+                    <% if (applicationDocuments.length === 0) { %>
+                        <p class="case-empty-note">No documents uploaded yet.</p>
+                    <% } else { %>
+                        <div class="case-document-list">
+                            <% applicationDocuments.forEach(function (document) { %>
+                                <article class="case-document-item">
+                                    <div>
+                                        <strong><%= document.documentType %></strong>
+                                        <p><%= document.originalFileName %> · <%= formatFileSize(document.fileSize) %></p>
+                                        <p>Uploaded by <%= document.uploadedByName %> · <%= formatDateTime(document.uploadedAt) %></p>
+                                        <% if (document.reviewNote) { %><p>Note: <%= document.reviewNote %></p><% } %>
+                                    </div>
+                                    <div>
+                                        <span class="status-badge status-other"><%= document.reviewStatus %></span>
+                                        <a class="button-secondary" href="/applications/<%= application.applicationId %>/documents/<%= document.documentId %>">Download</a>
+                                        <% if (userRole === 'agent' || userRole === 'admin') { %>
+                                            <form method="POST" action="/applications/<%= application.applicationId %>/documents/<%= document.documentId %>/review">
+                                                <label for="review-status-<%= document.documentId %>">Review status</label>
+                                                <select id="review-status-<%= document.documentId %>" name="reviewStatus" required>
+                                                    <% ['Received', 'Reviewed', 'Needs Replacement'].forEach(function (reviewStatus) { %>
+                                                        <option value="<%= reviewStatus %>" <%= document.reviewStatus === reviewStatus ? 'selected' : '' %>><%= reviewStatus %></option>
+                                                    <% }); %>
+                                                </select>
+                                                <input type="text" name="reviewNote" value="<%= document.reviewNote || '' %>" placeholder="Optional note">
+                                                <button type="submit">Save review</button>
+                                            </form>
+                                        <% } %>
+                                    </div>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </article>
+
+                <% if (review) { %>
+                    <article class="case-panel">
+                        <div class="case-panel-heading"><p class="eyebrow">Student feedback</p><h2>Review</h2></div>
+                        <%- include('partials/rating', { rating: review.rating, compact: false }) %>
+                        <p><%= review.comment %></p>
+                        <p class="case-empty-note"><%= formatDate(review.createdAt) %></p>
+                    </article>
+                <% } else if (userRole === 'student' && application.status === 'Completed') { %>
+                    <article class="case-panel">
+                        <div class="case-panel-heading"><p class="eyebrow">Service feedback</p><h2>Rate your experience</h2></div>
+                        <form method="POST" action="/applications/<%= application.applicationId %>/review">
+                            <fieldset class="star-rating">
+                                <legend>Rating</legend>
+                                <div class="star-rating-options">
+                                    <% [1, 2, 3, 4, 5].forEach(function (ratingOption) { %>
+                                        <label class="star-rating-option" for="review-rating-<%= ratingOption %>">
+                                            <input id="review-rating-<%= ratingOption %>" type="radio" name="rating" value="<%= ratingOption %>" required>
+                                            <span aria-hidden="true">★</span>
+                                            <span class="sr-only"><%= ratingOption %> star<%= ratingOption === 1 ? '' : 's' %></span>
+                                        </label>
+                                    <% }); %>
+                                </div>
+                            </fieldset>
+                            <label for="review-comment">Comment</label>
+                            <textarea id="review-comment" name="comment" required></textarea>
+                            <button type="submit">Submit Review</button>
+                        </form>
+                    </article>
+                <% } %>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Workflow</p><h2>Application Progress</h2></div>
+                    <% if (isTerminalException) { %>
+                        <p class="progress-exception"><strong><%= application.status %></strong> is outside the main application progression.</p>
+                    <% } %>
+                    <ol class="case-progress">
+                        <% progressStatuses.forEach(function (progressStatus) { %>
+                            <li class="<%= application.status === progressStatus ? 'is-current' : '' %> <%= progressStatuses.indexOf(application.status) > progressStatuses.indexOf(progressStatus) ? 'is-complete' : '' %>">
+                                <span class="progress-marker"></span><span><%= progressStatus %></span>
+                            </li>
+                        <% }); %>
+                    </ol>
+                </article>
+
+                <article class="case-panel">
+                    <div class="case-panel-heading"><p class="eyebrow">Audit trail</p><h2>Status History</h2></div>
+                    <% if (statusHistory.length === 0) { %>
+                        <p class="case-empty-note">No status changes recorded yet.</p>
+                    <% } else { %>
+                        <ol class="status-history-list">
+                            <% statusHistory.forEach(function (historyItem) { %>
+                                <li>
+                                    <span class="history-marker"></span>
+                                    <div>
+                                        <strong><%= historyItem.oldStatus %> -&gt; <%= historyItem.newStatus %></strong>
+                                        <span>Changed by <%= historyItem.changedByName %></span>
+                                        <time><%= formatDateTime(historyItem.createdAt) %></time>
+                                    </div>
+                                </li>
+                            <% }); %>
+                        </ol>
+                    <% } %>
+                </article>
+            </section>
+
+            <section class="case-conversation-column">
+                <article class="case-panel conversation-panel">
+                    <div class="case-panel-heading conversation-heading"><div><p class="eyebrow">Application thread</p><h2>Conversation</h2></div><span class="conversation-count"><%= messages.length %> message<%= messages.length === 1 ? '' : 's' %></span></div>
+                    <% if (messages.length === 0) { %>
+                        <p class="empty-state">No messages yet.</p>
+                    <% } else { %>
+                        <div class="case-message-thread">
+                            <% messages.forEach(function (message) { %>
+                                <% var isOwnMessage = message.senderName === username; %>
+                                <article class="case-message <%= isOwnMessage ? 'case-message-own' : (message.senderRole === 'admin' ? 'case-message-system' : 'case-message-other') %>">
+                                    <div class="case-message-meta"><strong><%= message.senderName %></strong><span><%= isOwnMessage ? 'You · ' : '' %><%= message.senderRole %> · <%= formatDateTime(message.createdAt) %></span></div>
+                                    <p><%= message.messageText %></p>
+                                </article>
+                            <% }); %>
+                        </div>
+                    <% } %>
+
+                    <% if (userRole === 'student' || userRole === 'agent') { %>
+                        <form class="case-message-form" method="POST" action="/applications/<%= application.applicationId %>/messages">
+                            <label for="messageText">Reply to conversation</label>
+                            <textarea id="messageText" name="messageText" placeholder="Type your message here..." required></textarea>
+                            <button type="submit">Send</button>
+                        </form>
+                    <% } else { %>
+                        <p class="read-only-note">Admin view is read-only.</p>
+                    <% } %>
+                </article>
+            </section>
+        </div>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>

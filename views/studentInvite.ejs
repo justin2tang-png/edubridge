@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invite Student</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+    <%- include('partials/nav') %>
+
+    <main class="page-shell">
+        <header class="page-header">
+            <h1>Invite Student</h1>
+            <p>Invite a student to join EduBridge.</p>
+        </header>
+
+        <form method="POST" action="/invitations">
+            <label for="studentEmail">Student email</label>
+            <input id="studentEmail" name="email" type="email" required>
+            <button type="submit">Send Invitation</button>
+        </form>
+
+        <p><a href="/students">Back to Students</a></p>
+    </main>
+    <%- include('partials/shellEnd') %>
+</body>
+</html>
