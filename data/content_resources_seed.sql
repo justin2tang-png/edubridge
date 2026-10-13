@@ -1,4 +1,4 @@
--- EduBridge researched content resources seed
+-- EduBridge learning resource data
 -- Generated 2026-09-24 from current official NZ sources and official Study with New Zealand YouTube.
 START TRANSACTION;
 

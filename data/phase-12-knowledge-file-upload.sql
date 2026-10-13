@@ -1,4 +1,4 @@
--- EduBridge Phase 12: private Knowledge File Library uploads and versions.
+-- Knowledge file uploads and version history
 -- Run once against the existing edubridge database after reviewing the changes.
 
 ALTER TABLE knowledgeFiles
