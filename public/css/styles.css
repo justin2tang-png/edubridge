@@ -2444,7 +2444,7 @@ form[style*="display:inline"] {
     }
 }
 
-/* Phase 13: Admin statistics use quiet, comparable bars instead of decorative charts. */
+/* Admin statistics */
 .admin-analytics {
     width: min(960px, calc(100% - 40px));
     margin: 28px auto 34px;
@@ -2547,7 +2547,7 @@ form[style*="display:inline"] {
     .admin-chart-row { grid-template-columns: minmax(96px, 1fr) minmax(70px, 1.4fr) auto; gap: 7px; }
 }
 
-/* Product polish: identity, hierarchy, and conversation state. */
+/* Account and conversation styles */
 .nav-symbol,
 .summary-icon,
 .action-mark {
@@ -3392,7 +3392,7 @@ form[style*="display:inline"] {
     }
 }
 
-/* V3 visual polish: shared workspace tokens and restrained product UI. */
+/* Shared workspace styles */
 :root {
     --eb-bg: #f5f6f3;
     --eb-surface: #ffffff;
@@ -4041,7 +4041,7 @@ tbody tr:hover td {
     }
 }
 
-/* Product polish round 2: quiet media blocks and compact source rows. */
+/* Media blocks and source rows */
 .content-resource-section {
     margin-top: 18px;
     padding: 22px;

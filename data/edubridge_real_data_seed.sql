@@ -1,4 +1,4 @@
--- EduBridge researched seed
+-- EduBridge programme and training data
 -- 50 programme records + 10 training modules + 50 sections + 40 quiz questions
 -- EduBridge programme and training seed data.
 START TRANSACTION;
