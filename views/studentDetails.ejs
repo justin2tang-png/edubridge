@@ -44,7 +44,7 @@
         <section class="student-detail-grid">
             <div class="student-detail-main">
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Student record</p><h2>Overview</h2></div>
+                    <div class="case-panel-heading"><h2>Overview</h2></div>
                     <dl class="case-detail-list">
                         <div><dt>Name</dt><dd><%= student.name %></dd></div>
                         <div><dt>Email</dt><dd><%= student.email %></dd></div>
@@ -55,7 +55,7 @@
                 </article>
 
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Application records</p><h2>Applications</h2></div>
+                    <div class="case-panel-heading"><h2>Applications</h2></div>
                     <% if (applications.length === 0) { %>
                         <p class="case-empty-note">No application records.</p>
                     <% } else { %>
@@ -73,7 +73,7 @@
                 </article>
 
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Programme guidance</p><h2>Programme Recommendations</h2></div>
+                    <div class="case-panel-heading"><h2>Programme Recommendations</h2></div>
                     <% if (recommendations.length === 0) { %>
                         <p class="case-empty-note">No programme recommendations yet.</p>
                     <% } else { %>
@@ -115,7 +115,7 @@
 
             <aside class="student-detail-side">
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Conversation activity</p><h2>Recent Messages</h2></div>
+                    <div class="case-panel-heading"><h2>Recent Messages</h2></div>
                     <% if (messages.length === 0) { %>
                         <p class="case-empty-note">No messages yet.</p>
                     <% } else { %>
@@ -132,12 +132,12 @@
                     <% } %>
                 </article>
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Recorded activity</p><h2>Activity Summary</h2></div>
+                    <div class="case-panel-heading"><h2>Activity Summary</h2></div>
                     <p class="case-empty-note"><%= applications.length %> application<%= applications.length === 1 ? '' : 's' %> recorded.</p>
                     <p class="case-empty-note"><%= messages.length %> recent conversation message<%= messages.length === 1 ? '' : 's' %> shown.</p>
                 </article>
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Student feedback</p><h2>Student Feedback</h2></div>
+                    <div class="case-panel-heading"><h2>Student Feedback</h2></div>
                     <% if (reviews.length === 0) { %>
                         <p class="case-empty-note">No completed-application feedback yet.</p>
                     <% } else { %>

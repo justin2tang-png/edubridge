@@ -263,8 +263,25 @@ function requireAgentFavourite(request, response, next) {
     next();
 }
 
-function loadAgentFavouriteIds(request, itemType, itemIds, callback) {
-    if (request.session.userRole !== 'agent' || itemIds.length === 0) {
+function requireProgrammeFavourite(request, response, next) {
+    if (!request.session.loggedin) {
+        return response.redirect('/login');
+    }
+
+    if (request.session.userRole !== 'agent' && request.session.userRole !== 'student') {
+        return response.status(403).send('Only students and agents can save programmes.');
+    }
+
+    next();
+}
+
+function loadFavouriteIds(request, itemType, itemIds, callback) {
+    var role = request.session.userRole;
+    var canLoad = itemType === 'Programme'
+        ? role === 'agent' || role === 'student'
+        : itemType === 'KnowledgeArticle' && role === 'agent';
+
+    if (!canLoad || itemIds.length === 0) {
         return callback(null, []);
     }
 
@@ -1966,19 +1983,7 @@ app.get('/students/:id([0-9]+)', requireAgent, function (request, response) {
     });
 });
 
-app.post('/students/:id([0-9]+)/recommendations', requireAgent, function (request, response) {
-    if (request.session.userRole !== 'agent') {
-        return response.status(403).send('Only agents can create recommendations.');
-    }
-
-    var studentId = Number(request.params.id);
-    var programmeId = Number(request.body.programmeId);
-    var reason = (request.body.reason || '').trim();
-
-    if (!Number.isInteger(studentId) || studentId < 1 || !Number.isInteger(programmeId) || programmeId < 1 || !reason) {
-        return response.status(400).send('Student, programme and reason are required.');
-    }
-
+function createProgrammeRecommendation(request, response, studentId, programmeId, reason, successRedirect) {
     var scopeSql = `
         SELECT id FROM users
         WHERE id = ? AND role = 'student' AND agentId = ?
@@ -2060,7 +2065,7 @@ app.post('/students/:id([0-9]+)/recommendations', requireAgent, function (reques
                                 if (commitError) {
                                     return rollbackWithError(response, 'Recommendation transaction commit failed', commitError);
                                 }
-                                response.redirect('/students/' + studentId);
+                                response.redirect(successRedirect);
                             });
                         });
                     });
@@ -2068,6 +2073,22 @@ app.post('/students/:id([0-9]+)/recommendations', requireAgent, function (reques
             });
         });
     });
+}
+
+app.post('/students/:id([0-9]+)/recommendations', requireAgent, function (request, response) {
+    if (request.session.userRole !== 'agent') {
+        return response.status(403).send('Only agents can create recommendations.');
+    }
+
+    var studentId = Number(request.params.id);
+    var programmeId = typeof request.body.programmeId === 'string' ? Number(request.body.programmeId) : NaN;
+    var reason = typeof request.body.reason === 'string' ? request.body.reason.trim() : '';
+
+    if (!Number.isSafeInteger(studentId) || studentId < 1 || !Number.isSafeInteger(programmeId) || programmeId < 1 || !reason) {
+        return response.status(400).send('Student, programme and reason are required.');
+    }
+
+    createProgrammeRecommendation(request, response, studentId, programmeId, reason, '/students/' + studentId);
 });
 
 app.get('/recommendations', requireLogin, function (request, response) {
@@ -2306,7 +2327,7 @@ app.get('/programmes', function (request, response) {
             return response.status(500).send('Programme query failed');
         }
 
-        loadAgentFavouriteIds(request, 'Programme', results.map(function (programme) {
+        loadFavouriteIds(request, 'Programme', results.map(function (programme) {
             return programme.programmeId;
         }), function (favouriteError, favouriteIds) {
             if (favouriteError) {
@@ -2352,7 +2373,7 @@ app.get('/programmes/:id', function (request, response) {
             return response.status(404).send('Programme not found');
         }
 
-        loadAgentFavouriteIds(request, 'Programme', [programmeId], function (favouriteError, favouriteIds) {
+        loadFavouriteIds(request, 'Programme', [programmeId], function (favouriteError, favouriteIds) {
             if (favouriteError) {
                 console.error('Programme favourite detail query failed:', favouriteError.message);
                 return response.status(500).send('Programme favourite detail query failed');
@@ -2366,10 +2387,22 @@ app.get('/programmes/:id', function (request, response) {
     });
 });
 
-app.post('/favourites/programmes/:programmeId([0-9]+)', requireAgentFavourite, function (request, response) {
+app.post('/favourites/programmes/:programmeId([0-9]+)', requireProgrammeFavourite, function (request, response) {
     var programmeId = Number(request.params.programmeId);
     var redirectPath = request.query.from === 'list' ? '/programmes' : '/programmes/' + programmeId;
     toggleFavourite(request, response, 'Programme', programmeId, 'programmes', 'programmeId', redirectPath);
+});
+
+app.post('/favourites/programmes/:programmeId([0-9]+)/recommend', requireAgentFavourite, function (request, response) {
+    var programmeId = Number(request.params.programmeId);
+    var studentId = typeof request.body.studentId === 'string' ? Number(request.body.studentId) : NaN;
+    var reason = typeof request.body.reason === 'string' ? request.body.reason.trim() : '';
+
+    if (!Number.isSafeInteger(programmeId) || programmeId < 1 || !Number.isSafeInteger(studentId) || studentId < 1 || !reason) {
+        return response.status(400).send('Student, programme and reason are required.');
+    }
+
+    createProgrammeRecommendation(request, response, studentId, programmeId, reason, '/favourites');
 });
 
 var allowedApplicationStatuses = [
@@ -3889,7 +3922,7 @@ app.get('/knowledge', requireKnowledgeAccess, function (request, response) {
                 return response.status(500).send('Knowledge category query failed');
             }
 
-            loadAgentFavouriteIds(request, 'KnowledgeArticle', results.map(function (article) {
+            loadFavouriteIds(request, 'KnowledgeArticle', results.map(function (article) {
                 return article.articleId;
             }), function (favouriteError, favouriteIds) {
                 if (favouriteError) {
@@ -3945,7 +3978,7 @@ app.get('/knowledge/:id([0-9]+)', requireKnowledgeAccess, function (request, res
                 return response.status(500).send('Knowledge resource query failed');
             }
 
-            loadAgentFavouriteIds(request, 'KnowledgeArticle', [articleId], function (favouriteError, favouriteIds) {
+            loadFavouriteIds(request, 'KnowledgeArticle', [articleId], function (favouriteError, favouriteIds) {
                 if (favouriteError) {
                     console.error('Knowledge favourite detail query failed:', favouriteError.message);
                     return response.status(500).send('Knowledge favourite detail query failed');
@@ -3967,7 +4000,7 @@ app.post('/favourites/knowledge/:articleId([0-9]+)', requireAgentFavourite, func
     toggleFavourite(request, response, 'KnowledgeArticle', articleId, 'knowledgeArticles', 'articleId', redirectPath);
 });
 
-app.get('/favourites', requireAgentFavourite, function (request, response) {
+app.get('/favourites', requireProgrammeFavourite, function (request, response) {
     conn.query(`
         SELECT f.favouriteId, f.itemId, f.createdAt,
                p.programmeName, p.provider, p.level, p.location
@@ -3981,22 +4014,43 @@ app.get('/favourites', requireAgentFavourite, function (request, response) {
             return response.status(500).send('Favourite programmes query failed');
         }
 
+        if (request.session.userRole === 'student') {
+            return response.render('favourites', {
+                programmes: programmes,
+                articles: [],
+                students: []
+            });
+        }
+
         conn.query(`
+            SELECT id, name, email
+            FROM users
+            WHERE role = 'student' AND agentId = ?
+            ORDER BY name, id
+        `, [request.session.userId], function (studentError, students) {
+            if (studentError) {
+                console.error('Favourite recommendation student query failed:', studentError.message);
+                return response.status(500).send('Favourite recommendation student query failed');
+            }
+
+            conn.query(`
             SELECT f.favouriteId, f.itemId, f.createdAt,
                    a.title, a.category
             FROM favourites AS f
             INNER JOIN knowledgeArticles AS a ON f.itemId = a.articleId
             WHERE f.userId = ? AND f.itemType = 'KnowledgeArticle'
             ORDER BY f.createdAt DESC, f.favouriteId DESC
-        `, [request.session.userId], function (articleError, articles) {
-            if (articleError) {
-                console.error('Favourite Knowledge query failed:', articleError.message);
-                return response.status(500).send('Favourite Knowledge query failed');
-            }
+            `, [request.session.userId], function (articleError, articles) {
+                if (articleError) {
+                    console.error('Favourite Knowledge query failed:', articleError.message);
+                    return response.status(500).send('Favourite Knowledge query failed');
+                }
 
-            response.render('favourites', {
-                programmes: programmes,
-                articles: articles
+                response.render('favourites', {
+                    programmes: programmes,
+                    articles: articles,
+                    students: students
+                });
             });
         });
     });

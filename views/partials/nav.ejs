@@ -4,27 +4,27 @@
             <a class="app-brand" href="/membersOnly">EduBridge</a>
 
             <nav class="sidebar-nav">
-                <a class="nav-dashboard <%= pageTitle === 'Dashboard' ? 'is-active' : '' %>" href="/membersOnly"><span class="nav-symbol"><%- include('icon', { icon: 'dashboard' }) %></span>Dashboard</a>
+                <a class="nav-dashboard <%= pageTitle === 'Dashboard' ? 'is-active' : '' %>" href="/membersOnly"<% if (pageTitle === 'Dashboard') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'dashboard' }) %></span>Dashboard</a>
                 <% if (userRole === 'agent' || userRole === 'admin') { %>
-                    <a class="nav-students <%= pageTitle === 'Students' ? 'is-active' : '' %>" href="/students"><span class="nav-symbol"><%- include('icon', { icon: 'students' }) %></span>Students</a>
+                    <a class="nav-students <%= pageTitle === 'Students' ? 'is-active' : '' %>" href="/students"<% if (pageTitle === 'Students') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'students' }) %></span>Students</a>
                 <% } %>
-                <a class="nav-applications <%= pageTitle === 'Applications' ? 'is-active' : '' %>" href="/applications"><span class="nav-symbol"><%- include('icon', { icon: 'applications' }) %></span>Applications</a>
-                <a class="nav-programmes <%= pageTitle === 'Programmes' ? 'is-active' : '' %>" href="/programmes"><span class="nav-symbol"><%- include('icon', { icon: 'programmes' }) %></span>Programmes</a>
+                <a class="nav-applications <%= pageTitle === 'Applications' ? 'is-active' : '' %>" href="/applications"<% if (pageTitle === 'Applications') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'applications' }) %></span>Applications</a>
+                <a class="nav-programmes <%= pageTitle === 'Programmes' ? 'is-active' : '' %>" href="/programmes"<% if (pageTitle === 'Programmes') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'programmes' }) %></span>Programmes</a>
                 <% if (userRole === 'agent' || userRole === 'admin') { %>
-                    <a class="nav-training <%= pageTitle === 'Training' || pageTitle === 'Training Centre' ? 'is-active' : '' %>" href="/training"><span class="nav-symbol"><%- include('icon', { icon: 'training' }) %></span>Training</a>
+                    <a class="nav-training <%= pageTitle === 'Training' || pageTitle === 'Training Centre' ? 'is-active' : '' %>" href="/training"<% if (pageTitle === 'Training' || pageTitle === 'Training Centre') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'training' }) %></span>Training</a>
                 <% } %>
                 <% if (userRole === 'agent' || userRole === 'admin') { %>
-                    <a class="nav-knowledge <%= pageTitle === 'Knowledge Base' ? 'is-active' : '' %>" href="/knowledge"><span class="nav-symbol"><%- include('icon', { icon: 'knowledge' }) %></span>Knowledge Base</a>
+                    <a class="nav-knowledge <%= pageTitle === 'Knowledge Base' ? 'is-active' : '' %>" href="/knowledge"<% if (pageTitle === 'Knowledge Base') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'knowledge' }) %></span>Knowledge Base</a>
                 <% } %>
-                <% if (userRole === 'agent') { %>
-                    <a class="nav-favourites <%= pageTitle === 'Favourites' ? 'is-active' : '' %>" href="/favourites"><span class="nav-symbol"><%- include('icon', { icon: 'bookmark' }) %></span>Favourites</a>
+                <% if (userRole === 'agent' || userRole === 'student') { %>
+                    <a class="nav-favourites <%= pageTitle === 'Favourites' ? 'is-active' : '' %>" href="/favourites"<% if (pageTitle === 'Favourites') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'bookmark' }) %></span>Favourites</a>
                 <% } %>
             </nav>
 
             <% if (userRole === 'admin') { %>
                 <div class="sidebar-admin">
                     <p class="sidebar-label">Admin</p>
-                    <a class="nav-admin <%= pageTitle === 'Admin' ? 'is-active' : '' %>" href="/admin"><span class="nav-symbol"><%- include('icon', { icon: 'admin' }) %></span>Admin</a>
+                    <a class="nav-admin <%= pageTitle === 'Admin' ? 'is-active' : '' %>" href="/admin"<% if (pageTitle === 'Admin') { %> aria-current="page"<% } %>><span class="nav-symbol"><%- include('icon', { icon: 'admin' }) %></span>Admin</a>
                 </div>
             <% } %>
 
@@ -69,7 +69,7 @@
             <% if (loggedin && (userRole === 'agent' || userRole === 'admin')) { %>
                 <a href="/knowledge">Knowledge</a>
             <% } %>
-            <% if (loggedin && userRole === 'agent') { %>
+            <% if (loggedin && (userRole === 'agent' || userRole === 'student')) { %>
                 <a href="/favourites">Favourites</a>
             <% } %>
         </div>

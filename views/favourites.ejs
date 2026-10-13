@@ -10,33 +10,57 @@
     <%- include('partials/nav') %>
     <main class="page-shell favourites-page">
         <header class="page-header">
-            <p class="eyebrow">Agent workspace</p>
+            <p class="eyebrow"><%= userRole === 'student' ? 'Student workspace' : 'Agent workspace' %></p>
             <h1>Favourites</h1>
-            <p>Keep useful programmes and Knowledge articles close at hand.</p>
+            <p><%= userRole === 'student' ? 'Keep programmes you are considering close at hand.' : 'Keep useful programmes and Knowledge articles close at hand.' %></p>
         </header>
 
         <section class="favourites-section" aria-labelledby="saved-programmes-title">
             <div class="section-heading">
-                <div><p class="eyebrow">Saved resources</p><h2 id="saved-programmes-title">Saved Programmes</h2></div>
+                <div><h2 id="saved-programmes-title">Saved Programmes</h2></div>
                 <span class="summary-label"><%= programmes.length %> saved</span>
             </div>
             <% if (programmes.length === 0) { %>
-                <div class="empty-state favourites-empty-state"><h3>No saved programmes yet.</h3><p>Save a programme from the Programmes page when you want to revisit it.</p></div>
+                <div class="empty-state favourites-empty-state"><h3>No saved programmes yet.</h3><p><%= userRole === 'student' ? 'Save programmes while you compare your study options.' : 'Save a programme from the Programmes page when you want to revisit it.' %></p></div>
             <% } else { %>
                 <div class="favourites-list">
                     <% programmes.forEach(function (programme) { %>
                         <article class="content-card favourite-row">
                             <div><h3><%= programme.programmeName %></h3><p><%= programme.provider %></p><span><%= programme.level %> · <%= programme.location %></span></div>
-                            <a class="button-secondary" href="/programmes/<%= programme.itemId %>">Open</a>
+                            <div class="favourite-row-actions">
+                                <a class="button-secondary" href="/programmes/<%= programme.itemId %>">Open</a>
+                                <% if (userRole === 'agent') { %>
+                                    <details class="favourite-recommend-details">
+                                        <summary class="button-secondary">Recommend</summary>
+                                        <% if (students.length === 0) { %>
+                                            <p class="favourite-no-students">No assigned students available.</p>
+                                        <% } else { %>
+                                            <form class="favourite-recommend-form" method="post" action="/favourites/programmes/<%= programme.itemId %>/recommend">
+                                                <label for="favourite-student-<%= programme.itemId %>">Recommend to</label>
+                                                <select id="favourite-student-<%= programme.itemId %>" name="studentId" required>
+                                                    <option value="">Select student</option>
+                                                    <% students.forEach(function (student) { %>
+                                                        <option value="<%= student.id %>"><%= student.name %> — <%= student.email %></option>
+                                                    <% }); %>
+                                                </select>
+                                                <label for="favourite-reason-<%= programme.itemId %>">Why this programme?</label>
+                                                <textarea id="favourite-reason-<%= programme.itemId %>" name="reason" required></textarea>
+                                                <button class="button-primary" type="submit">Send recommendation</button>
+                                            </form>
+                                        <% } %>
+                                    </details>
+                                <% } %>
+                            </div>
                         </article>
                     <% }); %>
                 </div>
             <% } %>
         </section>
 
+        <% if (userRole === 'agent') { %>
         <section class="favourites-section" aria-labelledby="saved-knowledge-title">
             <div class="section-heading">
-                <div><p class="eyebrow">Saved resources</p><h2 id="saved-knowledge-title">Saved Knowledge</h2></div>
+                <div><h2 id="saved-knowledge-title">Saved Knowledge</h2></div>
                 <span class="summary-label"><%= articles.length %> saved</span>
             </div>
             <% if (articles.length === 0) { %>
@@ -52,6 +76,7 @@
                 </div>
             <% } %>
         </section>
+        <% } %>
     </main>
     <%- include('partials/shellEnd') %>
 </body>

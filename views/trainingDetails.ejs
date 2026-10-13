@@ -17,12 +17,12 @@
         <div class="training-detail-grid">
             <section class="training-detail-main">
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Module overview</p><h2>Overview</h2></div>
+                    <div class="case-panel-heading"><h2>Overview</h2></div>
                     <p class="training-detail-description"><%= trainingModule.description %></p>
                 </article>
 
                 <article class="case-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Structured learning</p><h2>Learning Content</h2></div>
+                    <div class="case-panel-heading"><h2>Learning Content</h2></div>
                     <% if (sections.length === 0) { %>
                         <p class="case-empty-note">This module does not have learning sections yet.</p>
                     <% } else { %>
@@ -43,7 +43,7 @@
 
             <aside class="training-detail-side">
                 <article class="case-panel training-progress-panel">
-                    <div class="case-panel-heading"><p class="eyebrow">Your progress</p><h2>Progress</h2></div>
+                    <div class="case-panel-heading"><h2>Progress</h2></div>
                     <% if (trainingModule.completedAt) { %>
                         <span class="status-badge status-completed">Completed</span>
                         <p class="case-empty-note">Completed on <%= trainingModule.completedAt.toLocaleDateString ? trainingModule.completedAt.toLocaleDateString('en-GB') : trainingModule.completedAt %>.</p>
@@ -67,7 +67,7 @@
         <% var trainingLinkResources = trainingResources.filter(function (resource) { return resource.resourceType === 'Official Link'; }); %>
         <% if (trainingVideoResources.length > 0) { %>
             <section class="case-panel content-resource-section content-resource-section-training">
-                <div class="case-panel-heading"><p class="eyebrow">Watch &amp; Learn</p><h2>Watch &amp; Learn</h2></div>
+                <div class="case-panel-heading"><h2>Watch &amp; Learn</h2></div>
                 <div class="resource-video-grid">
                     <% trainingVideoResources.slice(0, 2).forEach(function (resource) { %>
                         <article class="resource-video-card">
@@ -85,7 +85,7 @@
         <% } %>
         <% if (trainingLinkResources.length > 0) { %>
             <section class="case-panel content-resource-section content-resource-section-training">
-                <div class="case-panel-heading"><p class="eyebrow">Further reading</p><h2>Related Resources</h2></div>
+                <div class="case-panel-heading"><h2>Related Resources</h2></div>
                 <div class="resource-link-list">
                     <% trainingLinkResources.forEach(function (resource) { %>
                         <a class="resource-link-row" href="<%= resource.externalUrl %>" target="_blank" rel="noopener noreferrer">
@@ -99,7 +99,7 @@
         <% } %>
 
         <section class="case-panel training-knowledge-check">
-            <div class="case-panel-heading"><p class="eyebrow">Assessment</p><h2>Knowledge Check</h2></div>
+            <div class="case-panel-heading"><h2>Knowledge Check</h2></div>
             <% if (trainingModule.completedAt) { %>
                 <p class="case-empty-note">This module is completed.</p>
             <% } else if (hasQuiz) { %>

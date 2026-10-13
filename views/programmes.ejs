@@ -14,59 +14,42 @@
             <p>Search and explore available study programmes.</p>
         </header>
 
-        <section class="content-card programme-filters">
-            <form action="/programmes" method="get">
-                <label for="keyword">Search programmes</label>
+        <section class="content-card programme-filters" aria-labelledby="programme-filter-title">
+            <div class="programme-filter-heading">
+                <div>
+                    <h2 id="programme-filter-title">Find a programme</h2>
+                    <p>Search by programme or provider, then narrow the results if needed.</p>
+                </div>
+                <span class="programme-result-count"><%= programmes.length %> found</span>
+            </div>
 
-                <input
-                    type="search"
-                    id="keyword"
-                    name="keyword"
-                    value="<%= keyword %>"
-                    placeholder="e.g. business or Auckland"
-                >
+            <form action="/programmes" method="get" class="programme-filter-form">
+                <div class="programme-search-field">
+                    <label for="keyword">Programme or provider</label>
+                    <input type="search" id="keyword" name="keyword" value="<%= keyword %>" placeholder="e.g. Business or University of Auckland">
+                </div>
 
-                <button class="button-primary" type="submit">Search</button>
+                <div class="programme-filter-field">
+                    <label for="level">Level</label>
+                    <input type="text" id="level" name="level" value="<%= filters.level %>" inputmode="numeric" placeholder="e.g. 7">
+                </div>
 
-                <% if (keyword) { %>
-                    <a class="button-secondary" href="/programmes">Clear</a>
-                <% } %>
-            </form>
+                <div class="programme-filter-field">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" value="<%= filters.location %>" placeholder="e.g. Auckland">
+                </div>
 
-            <form action="/programmes" method="get">
-                <label for="level">Level</label>
-                <input
-                    type="text"
-                    id="level"
-                    name="level"
-                    value="<%= filters.level %>"
-                    placeholder="e.g. Bachelor"
-                >
+                <div class="programme-filter-field">
+                    <label for="studyArea">Study area</label>
+                    <input type="text" id="studyArea" name="studyArea" value="<%= filters.studyArea %>" placeholder="e.g. Business">
+                </div>
 
-                <label for="location">Location</label>
-                <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    value="<%= filters.location %>"
-                    placeholder="e.g. Auckland"
-                >
-
-                <label for="studyArea">Study area</label>
-                <input
-                    type="text"
-                    id="studyArea"
-                    name="studyArea"
-                    value="<%= filters.studyArea %>"
-                    placeholder="e.g. Business"
-                >
-
-                <button class="button-primary" type="submit">Filter</button>
-                <a class="button-secondary" href="/programmes">Clear</a>
+                <div class="programme-filter-actions">
+                    <button class="button-primary" type="submit">Apply filters</button>
+                    <a class="button-secondary" href="/programmes">Clear all</a>
+                </div>
             </form>
         </section>
-
-        <p class="summary-label"><%= programmes.length %> programme<%= programmes.length === 1 ? '' : 's' %> found</p>
 
         <% if (programmes.length === 0) { %>
             <p class="empty-state">No programmes found.</p>
@@ -82,10 +65,9 @@
                             <span><strong>Duration</strong><%= programme.duration %></span>
                             <span><strong>Study area</strong><%= programme.studyArea %></span>
                         </div>
-                        <p class="status-note">Match score: <%= programme.matchScore %>/3</p>
                         <div class="card-actions">
                             <a class="button-secondary" href="/programmes/<%= programme.programmeId %>">View programme</a>
-                            <% if (userRole === 'agent') { %>
+                            <% if (userRole === 'agent' || userRole === 'student') { %>
                                 <% var programmeIsFavourite = favouriteProgrammeIds.indexOf(programme.programmeId) !== -1; %>
                                 <form method="post" action="/favourites/programmes/<%= programme.programmeId %>?from=list">
                                     <button class="button-secondary favourite-action <%= programmeIsFavourite ? 'is-saved' : '' %>" type="submit" aria-pressed="<%= programmeIsFavourite %>"><span class="favourite-icon"><%- include('partials/icon', { icon: 'bookmark' }) %></span><%= programmeIsFavourite ? 'Saved' : 'Save' %></button>
