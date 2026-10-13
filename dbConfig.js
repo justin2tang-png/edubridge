@@ -1,10 +1,10 @@
 var mysql = require('mysql');
 
 var conn = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'edubridge'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'edubridge'
 });
 
 conn.connect(function (error) {

@@ -3105,10 +3105,56 @@ app.post('/applications/:id/edit', requireLogin, function (request, response) {
 });
 
 app.post('/applications/:id/delete', requireLogin, function (request, response) {
-    if (['student', 'agent', 'admin'].indexOf(request.session.userRole) === -1) return response.status(403).send('You do not have permission to delete applications.');
-    var id = Number(request.params.id), sql = "DELETE FROM applications WHERE applicationId=? AND status='Submitted'", values = [id];
-    if (request.session.userRole === 'student') { sql += ' AND ownerUserId=?'; values.push(request.session.userId); } else if (request.session.userRole === 'agent') { sql += ' AND ownerUserId IN (SELECT id FROM users WHERE agentId=?)'; values.push(request.session.userId); }
-    conn.query(sql, values, function (error, result) { if (error) return response.status(500).send('Application deletion failed'); if (!result.affectedRows) return response.status(404).send('Application not found or is not submitted'); response.redirect('/applications'); });
+    if (['student', 'agent', 'admin'].indexOf(request.session.userRole) === -1) {
+        return response.status(403).send('You do not have permission to delete applications.');
+    }
+
+    var id = Number(request.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+        return response.status(400).send('Invalid application ID');
+    }
+
+    var scopeSql = '';
+    var values = [id];
+    if (request.session.userRole === 'student') {
+        scopeSql = ' AND ownerUserId=?';
+        values.push(request.session.userId);
+    } else if (request.session.userRole === 'agent') {
+        scopeSql = ' AND ownerUserId IN (SELECT id FROM users WHERE agentId=?)';
+        values.push(request.session.userId);
+    }
+
+    conn.beginTransaction(function (transactionError) {
+        if (transactionError) return response.status(500).send('Application deletion failed');
+
+        var lookupSql = "SELECT applicationId FROM applications WHERE applicationId=? AND status='Submitted'" + scopeSql + ' FOR UPDATE';
+        conn.query(lookupSql, values, function (lookupError, rows) {
+            if (lookupError) return rollbackWithError(response, 'Application deletion lookup failed', lookupError);
+            if (!rows.length) {
+                return conn.rollback(function () {
+                    response.status(404).send('Application not found or is not submitted');
+                });
+            }
+
+            conn.query('DELETE FROM applicationStatusHistory WHERE applicationId=?', [id], function (historyError) {
+                if (historyError) return rollbackWithError(response, 'Application history deletion failed', historyError);
+
+                var deleteSql = "DELETE FROM applications WHERE applicationId=? AND status='Submitted'" + scopeSql;
+                conn.query(deleteSql, values, function (deleteError, result) {
+                    if (deleteError) return rollbackWithError(response, 'Application deletion failed', deleteError);
+                    if (!result.affectedRows) {
+                        return conn.rollback(function () {
+                            response.status(404).send('Application not found or is not submitted');
+                        });
+                    }
+                    conn.commit(function (commitError) {
+                        if (commitError) return rollbackWithError(response, 'Application deletion commit failed', commitError);
+                        response.redirect('/applications');
+                    });
+                });
+            });
+        });
+    });
 });
 
 app.post('/applications/:id/status', requireAgent, function (request, response) {
